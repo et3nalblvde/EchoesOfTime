@@ -1,7 +1,7 @@
 import pygame
 from scripts.settings import load_settings
 from main_menu import main_menu
-
+from settings import *
 settings = load_settings()
 pygame.init()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
