@@ -73,16 +73,20 @@ class SettingsMenu:
             {"name": "Громкость музыки", "key": "MUSIC_VOLUME", "type": "slider", "range": (0, 1)},
             {"name": "Громкость звуков", "key": "SFX_VOLUME", "type": "slider", "range": (0, 1)},
             {"name": "Управление", "key": "KEYBINDS", "type": "menu"},
-            {"name": "Сложность", "key": "DIFFICULTY", "type": "select", "options": ["easy", "medium", "hard"]},
-            {"name": "Разрешение", "key": "RESOLUTION", "type": "select",
-             "options": ["1024x768", "1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440"]},
+            {"name": "Сложность", "key": "DIFFICULTY", "type": "select", "options": ["easy", "medium", "hard"]}
         ]
+
         self.selected_option = None
         self.update_resolution()
 
     def update_resolution(self):
-        self.screen_width = self.settings["SCREEN_WIDTH"]
-        self.screen_height = self.settings["SCREEN_HEIGHT"]
+        # Установка полноэкранного режима
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
+        # Получение текущего разрешения экрана
+        self.screen_width, self.screen_height = self.screen.get_size()
+
+        # Обновление параметров на основе нового разрешения
         self.back_button = pygame.Rect(
             self.screen_width * 0.5 - self.back_button_width * 0.5,
             self.screen_height - self.back_button_height - 20,
@@ -91,6 +95,7 @@ class SettingsMenu:
         self.slider_x_position = self.screen_width * 0.5 - self.slider_width * 0.5
         self.font_size = int(self.base_font_size * (self.screen_width / 1024))
         self.font = pygame.font.Font(None, self.font_size)
+
     #НУЖНО ПОДНЯТЬ СЛАЙДЕРЫ ЗВУКА!
     def draw(self):
         self.screen.fill((30, 30, 30))
