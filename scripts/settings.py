@@ -156,13 +156,6 @@ class SettingsMenu:
             if self.selected_option is not None:
                 option = self.options[self.selected_option]
                 if option["type"] == "menu" and option["key"] == "KEYBINDS":
-                    return "keybindings"  # Переход в меню управления клавишами
-
-        return True
-
-            if self.selected_option is not None:
-                option = self.options[self.selected_option]
-                if option["type"] == "menu" and option["key"] == "KEYBINDS":
                     self.keybindings_menu = KeyBindingsMenu(self.screen, self.settings)
                     return "keybindings"  # Переход в меню управления клавишами
 
@@ -210,7 +203,7 @@ class KeyBindingsMenu:
         return keybinding_buttons
 
     def draw(self):
-        self.screen.fill((0, 0, 0))  # Черный фон для меню управления
+        self.screen.fill((30, 30, 30))
 
         title_text = self.font.render("Управление", True, (255, 255, 255))
         self.screen.blit(title_text,
