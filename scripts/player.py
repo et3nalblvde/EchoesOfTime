@@ -2,124 +2,140 @@ import pygame
 import os
 import re
 
-# Инициализация Pygame
-pygame.init()
 
-# Параметры окна
-window_width = 800
-window_height = 600
-window = pygame.display.set_mode((window_width, window_height))
-pygame.display.set_caption('Эхо Анимация')
+# Параметры
+base_folder = os.path.dirname(os.path.abspath(__file__))
+sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites')
 
-# Путь к папке со спрайтами
-sprite_folder = r'C:\Users\aroki\PycharmProjects\EchoesOfTime\assets\sprites\shadows'
-
-
-# Функция для извлечения числовой части из имени файла
-def extract_number(filename):
-    match = re.search(r'(\d+)', filename)  # Ищем числа в имени файла
-    return int(match.group(1)) if match else -1  # Возвращаем число или -1, если чисел нет
-
-
-# Функция для создания эффекта тени
-def create_echo(sprite, shadow_intensity=100):
-    # Создаём поверхностный объект с тем же размером
-    shadow = pygame.Surface(sprite.get_size(), pygame.SRCALPHA)
-
-    # Закрашиваем тень в полупрозрачный серый
-    shadow.fill((0, 0, 0, shadow_intensity))  # Чёрный цвет с прозрачностью
-
-    # Накладываем тень на оригинальный спрайт
-    shadow.blit(sprite, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-
-    return shadow
+def load_animations(folder, animation_names, scale_factor=2):
+    animations = {}
+    for anim in animation_names:
+        anim_folder = os.path.join(folder, anim)
+        files = sorted([f for f in os.listdir(anim_folder) if f.endswith(('.png', '.jpg', '.jpeg'))],
+                       key=lambda f: int(re.search(r'(\d+)', f).group(1) if re.search(r'(\d+)', f) else -1))
+        animations[anim] = []
+        for file in files:
+            image = pygame.image.load(os.path.join(anim_folder, file))
+            scaled_image = pygame.transform.scale(image, (
+                image.get_width() * scale_factor, image.get_height() * scale_factor))
+            animations[anim].append(scaled_image)
+    return animations
 
 
-# Загружаем файлы для различных анимаций
-animations = {
-    "idle": sorted(
-        [f for f in os.listdir(os.path.join(sprite_folder, "idle")) if f.endswith(('.png', '.jpg', '.jpeg'))],
-        key=extract_number),
-    "run": sorted([f for f in os.listdir(os.path.join(sprite_folder, "run")) if f.endswith(('.png', '.jpg', '.jpeg'))],
-                  key=extract_number),
-    "jump": sorted(
-        [f for f in os.listdir(os.path.join(sprite_folder, "jump")) if f.endswith(('.png', '.jpg', '.jpeg'))],
-        key=extract_number),
-    "fall": sorted(
-        [f for f in os.listdir(os.path.join(sprite_folder, "fall")) if f.endswith(('.png', '.jpg', '.jpeg'))],
-        key=extract_number),
-    "death": sorted(
-        [f for f in os.listdir(os.path.join(sprite_folder, "death")) if f.endswith(('.png', '.jpg', '.jpeg'))],
-        key=extract_number)
-}
+animation_names = ["idle", "run", "jump", "fall", "death"]
+player_animations = load_animations(sprite_folder, animation_names)
 
-# Создаем список анимаций и анимаций с эхо
-animation_frames = {}
-animation_echo_frames = {}
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
 
-# Загружаем изображения из отсортированных файлов и создаём тени для них
-for anim in animations:
-    animation_frames[anim] = [pygame.image.load(os.path.join(sprite_folder, anim, file)) for file in animations[anim]]
-    animation_echo_frames[anim] = [create_echo(frame) for frame in animation_frames[anim]]
+        self.x = x
+        self.y = y
+        self.state = "idle"
+        self.animations = player_animations
+        self.frame_index = 0
+        self.image = self.animations[self.state][self.frame_index]
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.x, self.y)
 
-# Параметры анимации
-frame_rate = 10  # Частота кадров
-clock = pygame.time.Clock()
+        # Масштабируем персонажа
+        self.scale_factor = 2
+        self.image = pygame.transform.scale(self.image, (
+            self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.x, self.y)
 
-# Начальное состояние
-current_state = "idle"
-current_frame = 0
+        # Переменные для физики
+        self.velocity_x = 0
+        self.velocity_y = 0
+        self.speed = 5
+        self.gravity = 0.5
+        self.jump_strength = -10
+        self.on_ground = False
 
-# Основной цикл игры
-running = True
-while running:
-    window.fill((255, 255, 255))  # Заполняем фон белым цветом
+        # Задержки для анимаций
+        self.animation_delays = {
+            "idle": 10,
+            "run": 4,
+            "jump": 10,
+            "fall": 10,
+            "death": 10
+        }
+        self.animation_counter = 0  # Счётчик кадров
 
-    # Обрабатываем события
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            # Меняем анимацию в зависимости от нажатой клавиши
-            if event.key == pygame.K_SPACE:  # Прыжок
-                current_state = "jump"
-                current_frame = 0  # Сброс кадра
-            elif event.key == pygame.K_DOWN:  # Падение
-                if animation_frames["fall"]:  # Проверяем, что анимация падения существует
-                    current_state = "fall"
-                    current_frame = 0  # Сброс кадра
-            elif event.key == pygame.K_UP:  # Смерть
-                if animation_frames["death"]:  # Проверяем, что анимация смерти существует
-                    current_state = "death"
-                    current_frame = 0  # Сброс кадра
-            elif event.key == pygame.K_RIGHT:  # Бег
-                current_state = "run"
-                current_frame = 0  # Сброс кадра
-            elif event.key == pygame.K_LEFT:  # Стояние
-                current_state = "idle"
-                current_frame = 0  # Сброс кадра
+        # Флаг для отслеживания направления
+        self.facing_left = False
 
-    # Проверяем, что у нас есть кадры для текущего состояния
-    if animation_frames.get(current_state):
-        # Отображаем текущий спрайт
-        window.blit(animation_frames[current_state][current_frame], (
-        window_width // 2 - animation_frames[current_state][current_frame].get_width() // 2,
-        window_height // 2 - animation_frames[current_state][current_frame].get_height() // 2))
+    def update(self):
+        # Обработка анимации с учётом задержек
+        self.animation_counter += 1
+        if self.animation_counter >= self.animation_delays[self.state]:
+            self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
+            self.image = self.animations[self.state][self.frame_index]
 
-        # Отображаем "эхо"
-        window.blit(animation_echo_frames[current_state][current_frame], (
-        window_width // 2 - animation_echo_frames[current_state][current_frame].get_width() // 2 + 10,
-        window_height // 2 - animation_echo_frames[current_state][
-            current_frame].get_height() // 2 + 10))  # Легкий сдвиг тени
+            # Масштабируем изображение для каждого кадра анимации
+            self.image = pygame.transform.scale(self.image, (
+                self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
 
-        # Переход к следующему кадру для текущей анимации
-        current_frame = (current_frame + 1) % len(animation_frames[current_state])
+            # Если персонаж смотрит влево, отражаем изображение
+            if self.facing_left:
+                self.image = pygame.transform.flip(self.image, True, False)
 
-    # Обновляем экран
-    pygame.display.update()
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (self.x, self.y)
 
-    # Устанавливаем частоту кадров
-    clock.tick(frame_rate)
+            self.animation_counter = 0  # Сброс счётчика кадров
 
-# Закрытие Pygame
-pygame.quit()
+        # Применяем гравитацию и проверяем на землю
+        self.velocity_y += self.gravity
+        self.y += self.velocity_y
+        if self.y >= 400:  # Условие для проверки, что персонаж на земле
+            self.y = 400
+            self.velocity_y = 0
+            self.on_ground = True
+        else:
+            self.on_ground = False
+
+        # Обновляем позицию игрока
+        self.x += self.velocity_x
+        self.rect.topleft = (self.x, self.y)
+
+    def change_state(self, new_state):
+        if new_state in self.animations and new_state != self.state:
+            self.state = new_state
+            self.frame_index = 0
+            self.image = self.animations[self.state][self.frame_index]
+
+            # Масштабируем изображение при изменении состояния
+            self.image = pygame.transform.scale(self.image, (
+                self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+
+            # Если персонаж смотрит влево, отражаем изображение
+            if self.facing_left:
+                self.image = pygame.transform.flip(self.image, True, False)
+
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (self.x, self.y)
+
+    def move_left(self):
+        self.velocity_x = -self.speed
+        self.change_state("run")
+        self.facing_left = True  # Персонаж смотрит влево
+
+    def move_right(self):
+        self.velocity_x = self.speed
+        self.change_state("run")
+        self.facing_left = False  # Персонаж смотрит вправо
+
+    def jump(self):
+        if self.on_ground:
+            self.velocity_y = self.jump_strength
+            self.change_state("jump")
+
+    def stop(self):
+        self.velocity_x = 0
+        if self.on_ground:
+            self.change_state("idle")
+
+
+

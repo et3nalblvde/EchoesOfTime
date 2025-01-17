@@ -2,7 +2,7 @@ import pygame
 import sys
 import os
 from scripts.settings import load_settings, SettingsMenu
-from level_1 import main as start_level_1
+from level_1 import  start_level_1
 
 pygame.init()
 settings = load_settings()
