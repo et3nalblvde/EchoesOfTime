@@ -1,12 +1,13 @@
 import json
 import os
 import pygame
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 SETTINGS_FILE = os.path.join(PROJECT_DIR, 'save', 'settings.json')
-print(SETTINGS_FILE,FONTS_DIR,ASSETS_DIR,PROJECT_DIR,BASE_DIR)
+print(SETTINGS_FILE, FONTS_DIR, ASSETS_DIR, PROJECT_DIR, BASE_DIR)
 
 def load_settings():
     default_settings = {
@@ -39,13 +40,10 @@ def load_settings():
     else:
         return default_settings
 
-
-
 def save_settings(settings):
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
     with open(SETTINGS_FILE, "w") as file:
         json.dump(settings, file, indent=4)
-
 
 settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
@@ -56,8 +54,6 @@ MUSIC_VOLUME = settings["MUSIC_VOLUME"]
 SFX_VOLUME = settings["SFX_VOLUME"]
 ECHO_DELAY = settings["ECHO_DELAY"]
 ECHO_OPACITY = settings["ECHO_OPACITY"]
-
-
 
 class SettingsMenu:
     def __init__(self, screen, settings):
@@ -72,12 +68,15 @@ class SettingsMenu:
         self.options = [
             {"name": "Громкость музыки", "key": "MUSIC_VOLUME", "type": "slider", "range": (0, 1)},
             {"name": "Громкость звуков", "key": "SFX_VOLUME", "type": "slider", "range": (0, 1)},
-            {"name": "Управление", "key": "KEYBINDS", "type": "menu"},
-            {"name": "Сложность", "key": "DIFFICULTY", "type": "select", "options": ["easy", "medium", "hard"]}
+            {"name": "Сложность", "key": "DIFFICULTY", "type": "select", "options": ["easy", "medium", "hard"]},
         ]
 
         self.selected_option = None
         self.update_resolution()
+
+        # Для обработки зажатия мыши
+        self.is_dragging_slider = False
+        self.dragged_slider = None
 
     def update_resolution(self):
         # Установка полноэкранного режима
@@ -96,7 +95,6 @@ class SettingsMenu:
         self.font_size = int(self.base_font_size * (self.screen_width / 1024))
         self.font = pygame.font.Font(None, self.font_size)
 
-    #НУЖНО ПОДНЯТЬ СЛАЙДЕРЫ ЗВУКА!
     def draw(self):
         self.screen.fill((30, 30, 30))
         title_text = self.font.render("Настройки", True, (255, 255, 255))
@@ -110,15 +108,13 @@ class SettingsMenu:
                 value_text = f"{int(slider_value * 100)}%"
                 option_text = self.font.render(f"{option['name']}: {value_text}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
+
+                # Поднимем слайдер на 20 пикселей
                 pygame.draw.rect(self.screen, (255, 255, 255),
-                                 (self.slider_x_position, y_offset + self.font_size, self.slider_width, self.slider_height))
+                                 (self.slider_x_position, y_offset + self.font_size - 80, self.slider_width, self.slider_height))
                 pygame.draw.rect(self.screen, (255, 255, 0),
                                  (self.slider_x_position + slider_value * self.slider_width - 5,
-                                  y_offset + self.font_size, 10, self.slider_height))
-
-            elif option["type"] == "menu":
-                option_text = self.font.render(f"{option['name']}", True, color)
-                self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
+                                  y_offset + self.font_size - 80, 10, self.slider_height))
 
             elif option["type"] == "select":
                 option_text = self.font.render(f"{option['name']}: {self.settings[option['key']]}", True, color)
@@ -136,8 +132,7 @@ class SettingsMenu:
             for i, option in enumerate(self.options):
                 y_offset = self.screen_height * 0.2 + i * (self.font_size * 1.5) - 30
                 if option["type"] == "slider":
-                    slider_rect = pygame.Rect(self.slider_x_position, y_offset + self.font_size, self.slider_width,
-                                              self.slider_height)
+                    slider_rect = pygame.Rect(self.slider_x_position, y_offset + self.font_size - 80, self.slider_width, self.slider_height)
                     if slider_rect.collidepoint(mouse_x, mouse_y):
                         self.selected_option = i
                         break
@@ -146,12 +141,6 @@ class SettingsMenu:
                     if text_rect.collidepoint(mouse_x, mouse_y):
                         self.selected_option = i
                         break
-                elif option["type"] == "menu" and option["key"] == "KEYBINDS":
-                    text_rect = pygame.Rect(self.screen_width * 0.1, y_offset, 400, self.font_size)
-                    if text_rect.collidepoint(mouse_x, mouse_y):
-                        return "keybindings"
-                    if option["key"] == "KEYBINDS" and text_rect.collidepoint(mouse_x, mouse_y):
-                        print("Кнопка 'Управление' нажата")  # Выводим сообщение в консоль
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
@@ -162,19 +151,27 @@ class SettingsMenu:
             if self.selected_option is not None:
                 option = self.options[self.selected_option]
                 if option["type"] == "slider":
+                    self.is_dragging_slider = True
                     self.adjust_slider(option, mouse_x)
                 elif option["type"] == "select":
                     self.adjust_select(option)
-                elif option["type"] == "menu" and option["key"] == "KEYBINDS":
-                    return "keybindings"
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            self.is_dragging_slider = False  # Закрытие зажатия
+
+        # Обновляем слайдер в случае удержания кнопки
+        if self.is_dragging_slider and self.selected_option is not None:
+            option = self.options[self.selected_option]
+            self.adjust_slider(option, mouse_x)
 
         return True
 
     def adjust_slider(self, option, mouse_x):
-        slider_rect = pygame.Rect(self.slider_x_position, self.screen_height * 0.2 + self.selected_option * (self.font_size * 1.5) - 30 + self.font_size, self.slider_width, self.slider_height)
-        relative_x = mouse_x - self.slider_x_position
-        new_value = max(0, min(1, relative_x / self.slider_width))
-        self.settings[option["key"]] = new_value
+        if self.is_dragging_slider:
+            slider_rect = pygame.Rect(self.slider_x_position, self.screen_height * 0.2 + self.selected_option * (self.font_size * 1.5) - 30 + self.font_size - 20, self.slider_width, self.slider_height)
+            relative_x = mouse_x - self.slider_x_position
+            new_value = max(0, min(1, relative_x / self.slider_width))
+            self.settings[option["key"]] = new_value
 
     def adjust_select(self, option):
         current_value = self.settings[option["key"]]
@@ -195,6 +192,3 @@ class SettingsMenu:
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as file:
             json.dump(self.settings, file, indent=4)
-
-
-

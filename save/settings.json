@@ -7,8 +7,8 @@
         0,
         0
     ],
-    "MUSIC_VOLUME": 0.99,
-    "SFX_VOLUME": 0.94,
+    "MUSIC_VOLUME": 0.495,
+    "SFX_VOLUME": 0.51,
     "FULLSCREEN": false,
     "VSYNC": true,
     "PARTICLES": true,
@@ -19,7 +19,7 @@
         "MOVE_RIGHT": "D",
         "ACTION": "escape"
     },
-    "DIFFICULTY": "medium",
+    "DIFFICULTY": "hard",
     "RESOLUTION": "1024x768",
     "LANGUAGE": "ru",
     "SHOW_TUTORIAL": true,

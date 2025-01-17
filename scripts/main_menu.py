@@ -2,7 +2,7 @@ import pygame
 import sys
 import os
 from scripts.settings import load_settings, SettingsMenu
-from level_1 import  start_level_1
+from level_1 import start_level_1
 
 pygame.init()
 settings = load_settings()
@@ -23,61 +23,81 @@ base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
 
 # Устанавливаем разрешение окна
-# Устанавливаем разрешение окна
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()  # Получаем реальное разрешение экрана
 
-# Расположение кнопок относительно центра экрана
+
+# Кнопки
 def update_button_positions():
     global start_button, settings_button, quit_button
     button_width = SCREEN_WIDTH // 3
     button_height = SCREEN_HEIGHT // 10
 
-    # Расчёт позиций кнопок относительно центра экрана
+    # Центрирование кнопок
     center_x = SCREEN_WIDTH // 2
     center_y = SCREEN_HEIGHT // 2
 
     start_button = pygame.Rect(
-        center_x - button_width // 2,  # Центрируем по горизонтали
-        center_y - button_height * 1.5,  # Смещаем вверх
+        center_x - button_width // 2,
+        center_y - button_height * 1.5,
         button_width, button_height
     )
     settings_button = pygame.Rect(
-        center_x - button_width // 2,  # Центрируем по горизонтали
-        center_y - button_height // 2,  # Оставляем в центре
+        center_x - button_width // 2,
+        center_y - button_height // 2,
         button_width, button_height
     )
     quit_button = pygame.Rect(
-        center_x - button_width // 2,  # Центрируем по горизонтали
-        center_y + button_height * 0.5,  # Смещаем вниз
+        center_x - button_width // 2,
+        center_y + button_height * 0.5,
         button_width, button_height
     )
 
+
+# Градиентный фон
+def draw_gradient_background(surface):
+    top_color = pygame.Color(0, 0, 0)
+    bottom_color = pygame.Color(0, 0, 100)
+    for y in range(SCREEN_HEIGHT):
+        color = pygame.Color(
+            int(top_color.r + (bottom_color.r - top_color.r) * y / SCREEN_HEIGHT),
+            int(top_color.g + (bottom_color.g - top_color.g) * y / SCREEN_HEIGHT),
+            int(top_color.b + (bottom_color.b - top_color.b) * y / SCREEN_HEIGHT)
+        )
+        pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
+
+
+# Эффекты кнопок
+def draw_button(surface, button, text, is_hovered):
+    color = (255, 255, 255)
+    if is_hovered:
+        pygame.draw.rect(surface, (255, 255, 0), button)  # Подсветка
+        text_surface = font.render(text, True, (0, 0, 0))
+    else:
+        pygame.draw.rect(surface, color, button)
+        text_surface = font.render(text, True, (0, 0, 0))
+
+    surface.blit(text_surface, (
+        button.centerx - text_surface.get_width() // 2,
+        button.centery - text_surface.get_height() // 2
+    ))
+
+
 def draw_main_menu(screen):
-    screen.fill(BACKGROUND_COLOR)
+    draw_gradient_background(screen)
 
-    # Кнопки
-    pygame.draw.rect(screen, (255, 255, 255), start_button)
-    pygame.draw.rect(screen, (255, 255, 255), settings_button)
-    pygame.draw.rect(screen, (255, 255, 255), quit_button)
+    # Переменные для наведения
+    mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    # Тексты на кнопках
-    start_text = font.render("Начать игру", True, (0, 0, 0))
-    settings_text = font.render("Настройки", True, (0, 0, 0))
-    quit_text = font.render("Выйти", True, (0, 0, 0))
+    # Кнопки с эффектами
+    is_start_hovered = start_button.collidepoint(mouse_x, mouse_y)
+    is_settings_hovered = settings_button.collidepoint(mouse_x, mouse_y)
+    is_quit_hovered = quit_button.collidepoint(mouse_x, mouse_y)
 
-    screen.blit(start_text, (
-        start_button.centerx - start_text.get_width() // 2,
-        start_button.centery - start_text.get_height() // 2
-    ))
-    screen.blit(settings_text, (
-        settings_button.centerx - settings_text.get_width() // 2,
-        settings_button.centery - settings_text.get_height() // 2
-    ))
-    screen.blit(quit_text, (
-        quit_button.centerx - quit_text.get_width() // 2,
-        quit_button.centery - quit_text.get_height() // 2
-    ))
+    draw_button(screen, start_button, "Начать игру", is_start_hovered)
+    draw_button(screen, settings_button, "Настройки", is_settings_hovered)
+    draw_button(screen, quit_button, "Выйти", is_quit_hovered)
+
 
 def main_menu(screen):
     running = True
@@ -115,7 +135,6 @@ def main_menu(screen):
 
     pygame.quit()
     sys.exit()
-
 
 
 if __name__ == "__main__":
