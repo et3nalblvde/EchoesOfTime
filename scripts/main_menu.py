@@ -18,22 +18,22 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
-# Инициализируем шрифт
+
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
 
-# Устанавливаем разрешение окна
+
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()  # Получаем реальное разрешение экрана
+SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()  
 
 
-# Кнопки
+
 def update_button_positions():
     global start_button, settings_button, quit_button
     button_width = SCREEN_WIDTH // 3
     button_height = SCREEN_HEIGHT // 10
 
-    # Центрирование кнопок
+    
     center_x = SCREEN_WIDTH // 2
     center_y = SCREEN_HEIGHT // 2
 
@@ -54,7 +54,7 @@ def update_button_positions():
     )
 
 
-# Градиентный фон
+
 def draw_gradient_background(surface):
     top_color = pygame.Color(0, 0, 0)
     bottom_color = pygame.Color(0, 0, 100)
@@ -67,11 +67,11 @@ def draw_gradient_background(surface):
         pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
 
 
-# Эффекты кнопок
+
 def draw_button(surface, button, text, is_hovered):
     color = (255, 255, 255)
     if is_hovered:
-        pygame.draw.rect(surface, (255, 255, 0), button)  # Подсветка
+        pygame.draw.rect(surface, (255, 255, 0), button)  
         text_surface = font.render(text, True, (0, 0, 0))
     else:
         pygame.draw.rect(surface, color, button)
@@ -86,10 +86,10 @@ def draw_button(surface, button, text, is_hovered):
 def draw_main_menu(screen):
     draw_gradient_background(screen)
 
-    # Переменные для наведения
+    
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    # Кнопки с эффектами
+    
     is_start_hovered = start_button.collidepoint(mouse_x, mouse_y)
     is_settings_hovered = settings_button.collidepoint(mouse_x, mouse_y)
     is_quit_hovered = quit_button.collidepoint(mouse_x, mouse_y)
@@ -104,7 +104,6 @@ def main_menu(screen):
     clock = pygame.time.Clock()
     settings_menu = None
 
-    # Обновляем кнопки в зависимости от разрешения
     update_button_positions()
 
     while running:
@@ -117,13 +116,11 @@ def main_menu(screen):
                 continue
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if start_button.collidepoint(event.pos):
-                    start_level_1(screen)  # Запуск первого уровня
-                    print("Запуск игры...")
+                    start_level_1(screen)  
                 elif settings_button.collidepoint(event.pos):
-                    print("Открытие настроек...")
                     settings_menu = SettingsMenu(screen, settings)
                 elif quit_button.collidepoint(event.pos):
-                    running = False
+                    running = False  
 
         if settings_menu:
             settings_menu.draw()
@@ -137,8 +134,10 @@ def main_menu(screen):
     sys.exit()
 
 
+
+
 if __name__ == "__main__":
-    # Убедимся, что разрешение обновлено перед запуском меню
+    
     SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
-    update_button_positions()  # Пересчёт позиций кнопок
+    update_button_positions()  
     main_menu(screen)

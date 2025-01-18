@@ -3,7 +3,6 @@ import os
 import re
 
 
-# Параметры
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites')
 
@@ -22,7 +21,7 @@ def load_animations(folder, animation_names, scale_factor=2):
     return animations
 
 
-animation_names = ["idle", "run", "jump", "fall", "death"]
+animation_names = ["idle", "run", "jump", "fall", "death", "attack"]  
 player_animations = load_animations(sprite_folder, animation_names)
 
 class Player(pygame.sprite.Sprite):
@@ -38,14 +37,14 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
 
-        # Масштабируем персонажа
+        
         self.scale_factor = 2
         self.image = pygame.transform.scale(self.image, (
             self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
 
-        # Переменные для физики
+        
         self.velocity_x = 0
         self.velocity_y = 0
         self.speed = 5
@@ -53,64 +52,82 @@ class Player(pygame.sprite.Sprite):
         self.jump_strength = -10
         self.on_ground = False
 
-        # Задержки для анимаций
+        
         self.animation_delays = {
-            "idle": 10,
+            "idle": 100,
             "run": 4,
             "jump": 10,
             "fall": 10,
-            "death": 10
+            "death": 10,
+            "attack": 15
         }
-        self.animation_counter = 0  # Счётчик кадров
+        self.animation_counter = 0  
 
-        # Флаг для отслеживания направления
+        
         self.facing_left = False
 
+        
+        self.health = 3  
+
     def update(self):
-        # Обработка анимации с учётом задержек
-        self.animation_counter += 1
-        if self.animation_counter >= self.animation_delays[self.state]:
-            self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
-            self.image = self.animations[self.state][self.frame_index]
-
-            # Масштабируем изображение для каждого кадра анимации
-            self.image = pygame.transform.scale(self.image, (
-                self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
-            # Если персонаж смотрит влево, отражаем изображение
-            if self.facing_left:
-                self.image = pygame.transform.flip(self.image, True, False)
-
+        
+        if self.health <= 0:
+            self.change_state("death")  
+            self.frame_index = len(self.animations["death"]) - 1  
+            self.image = self.animations["death"][self.frame_index]  
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
-
-            self.animation_counter = 0  # Сброс счётчика кадров
-
-        # Применяем гравитацию и проверяем на землю
-        self.velocity_y += self.gravity
-        self.y += self.velocity_y
-        if self.y >= 400:  # Условие для проверки, что персонаж на земле
-            self.y = 400
-            self.velocity_y = 0
-            self.on_ground = True
         else:
-            self.on_ground = False
+            
+            self.animation_counter += 1
+            if self.animation_counter >= self.animation_delays[self.state]:
+                self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
+                self.image = self.animations[self.state][self.frame_index]
 
-        # Обновляем позицию игрока
-        self.x += self.velocity_x
-        self.rect.topleft = (self.x, self.y)
+                
+                self.image = pygame.transform.scale(self.image, (
+                    self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+
+                
+                if self.facing_left:
+                    self.image = pygame.transform.flip(self.image, True, False)
+
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (self.x, self.y)
+
+                self.animation_counter = 0  
+
+            
+            self.velocity_y += self.gravity
+            self.y += self.velocity_y
+            if self.y >= 400:  
+                self.y = 400
+                self.velocity_y = 0
+                self.on_ground = True
+            else:
+                self.on_ground = False
+
+            
+            self.x += self.velocity_x
+            self.rect.topleft = (self.x, self.y)
+
+    def take_damage(self, amount):
+        
+        self.health -= amount
+        if self.health < 0:
+            self.health = 0  
 
     def change_state(self, new_state):
-        if new_state in self.animations and new_state != self.state:
+        if new_state == "death" or (new_state != "idle" and new_state in self.animations and new_state != self.state):
             self.state = new_state
             self.frame_index = 0
             self.image = self.animations[self.state][self.frame_index]
 
-            # Масштабируем изображение при изменении состояния
+            
             self.image = pygame.transform.scale(self.image, (
                 self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
 
-            # Если персонаж смотрит влево, отражаем изображение
+            
             if self.facing_left:
                 self.image = pygame.transform.flip(self.image, True, False)
 
@@ -120,12 +137,12 @@ class Player(pygame.sprite.Sprite):
     def move_left(self):
         self.velocity_x = -self.speed
         self.change_state("run")
-        self.facing_left = True  # Персонаж смотрит влево
+        self.facing_left = True  
 
     def move_right(self):
         self.velocity_x = self.speed
         self.change_state("run")
-        self.facing_left = False  # Персонаж смотрит вправо
+        self.facing_left = False  
 
     def jump(self):
         if self.on_ground:
@@ -137,5 +154,12 @@ class Player(pygame.sprite.Sprite):
         if self.on_ground:
             self.change_state("idle")
 
+    def attack(self):
+        self.change_state("attack")  
+        
 
-
+    def is_death_animation_finished(self):
+        
+        if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:
+            return True
+        return False

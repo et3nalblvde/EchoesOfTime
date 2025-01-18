@@ -50,3 +50,40 @@ if __name__ == "__main__":
     print("Подробности:")
     for file_path, line_count in details:
         print(f"{file_path}: {line_count} строк")
+import os
+import re
+
+# Функция для удаления комментариев из файла
+def remove_comments_from_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        code = file.read()
+
+    # Удаляем однострочные комментарии (начинаются с #)
+    code = re.sub(r'#.*', '', code)
+
+    # Удаляем многострочные комментарии (между ''' или """ и его концом)
+    code = re.sub(r'\'\'\'(.*?)\'\'\'', '', code, flags=re.DOTALL)
+    code = re.sub(r'\"\"\"(.*?)\"\"\"', '', code, flags=re.DOTALL)
+
+    # Возвращаем очищенный код
+    return code
+
+# Функция для обработки всех файлов в проекте
+def remove_comments_from_project(directory):
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            # Рассматриваем только Python файлы
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                print(f'Обрабатывается: {file_path}')
+
+                # Убираем комментарии из файла
+                cleaned_code = remove_comments_from_file(file_path)
+
+                # Перезаписываем файл очищенным кодом
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(cleaned_code)
+
+# Укажите путь к корню вашего проекта
+project_directory = 'C:/Users/aroki/PycharmProjects/EchoesOfTime'
+remove_comments_from_project(project_directory)

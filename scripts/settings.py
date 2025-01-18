@@ -74,18 +74,18 @@ class SettingsMenu:
         self.selected_option = None
         self.update_resolution()
 
-        # Для обработки зажатия мыши
+        
         self.is_dragging_slider = False
         self.dragged_slider = None
 
     def update_resolution(self):
-        # Установка полноэкранного режима
+        
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
-        # Получение текущего разрешения экрана
+        
         self.screen_width, self.screen_height = self.screen.get_size()
 
-        # Обновление параметров на основе нового разрешения
+        
         self.back_button = pygame.Rect(
             self.screen_width * 0.5 - self.back_button_width * 0.5,
             self.screen_height - self.back_button_height - 20,
@@ -109,7 +109,7 @@ class SettingsMenu:
                 option_text = self.font.render(f"{option['name']}: {value_text}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-                # Поднимем слайдер на 20 пикселей
+                
                 pygame.draw.rect(self.screen, (255, 255, 255),
                                  (self.slider_x_position, y_offset + self.font_size - 80, self.slider_width, self.slider_height))
                 pygame.draw.rect(self.screen, (255, 255, 0),
@@ -157,9 +157,9 @@ class SettingsMenu:
                     self.adjust_select(option)
 
         if event.type == pygame.MOUSEBUTTONUP:
-            self.is_dragging_slider = False  # Закрытие зажатия
+            self.is_dragging_slider = False  
 
-        # Обновляем слайдер в случае удержания кнопки
+        
         if self.is_dragging_slider and self.selected_option is not None:
             option = self.options[self.selected_option]
             self.adjust_slider(option, mouse_x)
