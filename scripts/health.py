@@ -7,7 +7,7 @@ def load_heart_sprites():
     base_folder = os.path.dirname(os.path.abspath(__file__))
     sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'heart')
 
-    print(f"Папка с изображениями: {sprite_folder}")  
+
 
     heart_full = None
     heart_empty = None
@@ -17,7 +17,6 @@ def load_heart_sprites():
     for file in os.listdir(sprite_folder):
         if 'full' in file and file.endswith(('.png', '.jpg', '.jpeg')):  
             heart_full_path = os.path.join(sprite_folder, file)
-            print(f"Загружаем полное сердце: {heart_full_path}")  
             heart_full = pygame.image.load(heart_full_path)
             break
 
@@ -25,7 +24,6 @@ def load_heart_sprites():
     for file in os.listdir(sprite_folder):
         if 'empty' in file and file.endswith(('.png', '.jpg', '.jpeg')):  
             heart_empty_path = os.path.join(sprite_folder, file)
-            print(f"Загружаем пустое сердце: {heart_empty_path}")  
             heart_empty = pygame.image.load(heart_empty_path)
             break
 
@@ -33,7 +31,6 @@ def load_heart_sprites():
     for file in os.listdir(sprite_folder):
         if 'half' in file and file.endswith(('.png', '.jpg', '.jpeg')):  
             heart_half_path = os.path.join(sprite_folder, file)
-            print(f"Загружаем полусердце: {heart_half_path}")  
             heart_half = pygame.image.load(heart_half_path)
             break
 
