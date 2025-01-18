@@ -1,6 +1,7 @@
 import pygame
 import sys
 import os
+from PIL import Image
 from scripts.settings import load_settings, SettingsMenu
 from level_1 import start_level_1
 
@@ -9,7 +10,6 @@ settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
 SCREEN_HEIGHT = settings["SCREEN_HEIGHT"]
 FPS = settings["FPS"]
-BACKGROUND_COLOR = settings["BACKGROUND_COLOR"]
 MUSIC_VOLUME = settings["MUSIC_VOLUME"]
 pygame.mixer.music.set_volume(MUSIC_VOLUME)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,22 +18,30 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
-
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
 
-
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()  
+SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
 
 
+background_gif_path = os.path.join(ASSETS_DIR, 'sprites','background', 'background.gif')  
+background_image = Image.open(background_gif_path)
+
+
+background_frames = []
+for frame in range(background_image.n_frames):
+    background_image.seek(frame)
+    frame_data = pygame.image.fromstring(background_image.convert("RGBA").tobytes(), background_image.size, "RGBA")
+    background_frames.append(frame_data)
+
+frame_count = len(background_frames)
 
 def update_button_positions():
     global start_button, settings_button, quit_button
     button_width = SCREEN_WIDTH // 3
     button_height = SCREEN_HEIGHT // 10
 
-    
     center_x = SCREEN_WIDTH // 2
     center_y = SCREEN_HEIGHT // 2
 
@@ -54,7 +62,6 @@ def update_button_positions():
     )
 
 
-
 def draw_gradient_background(surface):
     top_color = pygame.Color(0, 0, 0)
     bottom_color = pygame.Color(0, 0, 100)
@@ -66,30 +73,23 @@ def draw_gradient_background(surface):
         )
         pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
 
-
-
 def draw_button(surface, button, text, is_hovered):
-    color = (255, 255, 255)
-    if is_hovered:
-        pygame.draw.rect(surface, (255, 255, 0), button)  
-        text_surface = font.render(text, True, (0, 0, 0))
-    else:
-        pygame.draw.rect(surface, color, button)
-        text_surface = font.render(text, True, (0, 0, 0))
-
+    
+    text_surface = font.render(text, True, (255, 255, 255))  
     surface.blit(text_surface, (
         button.centerx - text_surface.get_width() // 2,
         button.centery - text_surface.get_height() // 2
     ))
 
 
-def draw_main_menu(screen):
-    draw_gradient_background(screen)
 
+def draw_main_menu(screen, current_frame):
     
+    background_resized = pygame.transform.scale(background_frames[current_frame], (SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen.blit(background_resized, (0, 0))
+
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    
     is_start_hovered = start_button.collidepoint(mouse_x, mouse_y)
     is_settings_hovered = settings_button.collidepoint(mouse_x, mouse_y)
     is_quit_hovered = quit_button.collidepoint(mouse_x, mouse_y)
@@ -103,6 +103,9 @@ def main_menu(screen):
     running = True
     clock = pygame.time.Clock()
     settings_menu = None
+    current_frame = 0  
+    frame_delay = 2  
+    frame_counter = 0  
 
     update_button_positions()
 
@@ -116,16 +119,22 @@ def main_menu(screen):
                 continue
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if start_button.collidepoint(event.pos):
-                    start_level_1(screen)  
+                    start_level_1(screen)
                 elif settings_button.collidepoint(event.pos):
                     settings_menu = SettingsMenu(screen, settings)
                 elif quit_button.collidepoint(event.pos):
-                    running = False  
+                    running = False
 
         if settings_menu:
             settings_menu.draw()
         else:
-            draw_main_menu(screen)
+            
+            if frame_counter >= frame_delay:
+                draw_main_menu(screen, current_frame)
+                current_frame = (current_frame + 1) % frame_count  
+                frame_counter = 0
+            else:
+                frame_counter += 1
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -134,10 +143,7 @@ def main_menu(screen):
     sys.exit()
 
 
-
-
 if __name__ == "__main__":
-    
     SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
-    update_button_positions()  
+    update_button_positions()
     main_menu(screen)

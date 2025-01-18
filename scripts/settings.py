@@ -1,13 +1,26 @@
+import pygame
 import json
 import os
-import pygame
+from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 SETTINGS_FILE = os.path.join(PROJECT_DIR, 'save', 'settings.json')
-print(SETTINGS_FILE, FONTS_DIR, ASSETS_DIR, PROJECT_DIR, BASE_DIR)
+BACKGROUND_GIF_PATH = os.path.join(ASSETS_DIR, 'sprites', 'background', 'background.gif')
+
+
+background_image = Image.open(BACKGROUND_GIF_PATH)
+background_frames = []
+for frame in range(background_image.n_frames):
+    background_image.seek(frame)
+    frame_data = pygame.image.fromstring(background_image.convert("RGBA").tobytes(), background_image.size, "RGBA")
+    background_frames.append(frame_data)
+frame_count = len(background_frames)
+
+
+FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
 def load_settings():
     default_settings = {
@@ -49,7 +62,6 @@ settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
 SCREEN_HEIGHT = settings["SCREEN_HEIGHT"]
 FPS = settings["FPS"]
-BACKGROUND_COLOR = tuple(settings["BACKGROUND_COLOR"])
 MUSIC_VOLUME = settings["MUSIC_VOLUME"]
 SFX_VOLUME = settings["SFX_VOLUME"]
 ECHO_DELAY = settings["ECHO_DELAY"]
@@ -59,8 +71,8 @@ class SettingsMenu:
     def __init__(self, screen, settings):
         self.screen = screen
         self.settings = settings
-        self.base_font_size = 40
-        self.font = pygame.font.Font(None, self.base_font_size)
+        self.base_font_size = 18
+        self.font = pygame.font.Font(FONT_PATH, self.base_font_size)  
         self.back_button_width = 200
         self.back_button_height = 50
         self.slider_width = 200
@@ -73,19 +85,12 @@ class SettingsMenu:
 
         self.selected_option = None
         self.update_resolution()
-
-        
         self.is_dragging_slider = False
         self.dragged_slider = None
 
     def update_resolution(self):
-        
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-
-        
         self.screen_width, self.screen_height = self.screen.get_size()
-
-        
         self.back_button = pygame.Rect(
             self.screen_width * 0.5 - self.back_button_width * 0.5,
             self.screen_height - self.back_button_height - 20,
@@ -93,10 +98,18 @@ class SettingsMenu:
         )
         self.slider_x_position = self.screen_width * 0.5 - self.slider_width * 0.5
         self.font_size = int(self.base_font_size * (self.screen_width / 1024))
-        self.font = pygame.font.Font(None, self.font_size)
+        self.font = pygame.font.Font(FONT_PATH, self.font_size)
 
     def draw(self):
-        self.screen.fill((30, 30, 30))
+        frame_skip = 3  
+
+        current_frame = (pygame.time.get_ticks() // (
+                    100 * frame_skip)) % frame_count  
+        background_resized = pygame.transform.scale(background_frames[current_frame],
+                                                    (self.screen_width, self.screen_height))
+
+        self.screen.blit(background_resized, (0, 0))  
+
         title_text = self.font.render("Настройки", True, (255, 255, 255))
         self.screen.blit(title_text, (self.screen_width * 0.5 - title_text.get_width() * 0.5, self.screen_height * 0.1))
 
@@ -109,9 +122,9 @@ class SettingsMenu:
                 option_text = self.font.render(f"{option['name']}: {value_text}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-                
                 pygame.draw.rect(self.screen, (255, 255, 255),
-                                 (self.slider_x_position, y_offset + self.font_size - 80, self.slider_width, self.slider_height))
+                                 (self.slider_x_position, y_offset + self.font_size - 80, self.slider_width,
+                                  self.slider_height))
                 pygame.draw.rect(self.screen, (255, 255, 0),
                                  (self.slider_x_position + slider_value * self.slider_width - 5,
                                   y_offset + self.font_size - 80, 10, self.slider_height))
@@ -120,7 +133,8 @@ class SettingsMenu:
                 option_text = self.font.render(f"{option['name']}: {self.settings[option['key']]}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button)
+        
+        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button, 2)  
         back_text = self.font.render("Назад", True, (0, 0, 0))
         self.screen.blit(back_text, (
             self.screen_width * 0.5 - back_text.get_width() * 0.5, self.screen_height * 0.9))
@@ -157,9 +171,8 @@ class SettingsMenu:
                     self.adjust_select(option)
 
         if event.type == pygame.MOUSEBUTTONUP:
-            self.is_dragging_slider = False  
+            self.is_dragging_slider = False
 
-        
         if self.is_dragging_slider and self.selected_option is not None:
             option = self.options[self.selected_option]
             self.adjust_slider(option, mouse_x)
