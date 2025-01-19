@@ -96,7 +96,8 @@ def start_level_1(screen):
         collision.check_platform_collision(shadow)  
         collision.check_wall_collision(player)
         collision.check_wall_collision(shadow)
-
+        collision.check_box_collision(player)
+        collision.check_box_collision(shadow)
         if controlling_player:
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 player.move_left()

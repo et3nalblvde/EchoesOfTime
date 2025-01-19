@@ -3,7 +3,7 @@ import os
 import re
 
 
-from collision import CollisionLevel1  # Импортируем класс для обработки коллизий с уровнями
+from collision import CollisionLevel1  
 
 
 base_folder = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +31,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        # Инициализация других параметров
+        
         self.x = x
         self.y = y
         self.state = "idle"
@@ -41,7 +41,6 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
         self.on_platform = False
-        # Другие параметры
         self.scale_factor = 2
         self.velocity_x = 0
         self.velocity_y = 0
@@ -54,11 +53,11 @@ class Player(pygame.sprite.Sprite):
         self.facing_left = False
         self.health = 3
         self.last_direction = None
-        # Время последнего прыжка
         self.last_jump_time = 0
-        self.jump_delay = 500  # Задержка в 1 секунду (1000 миллисекунд)
+        self.jump_delay = 500
         self.collision_type = 'none'
-        # Добавляем атрибуты для задержек анимации
+        
+        self.boxes = [pygame.Rect(1000, 1000, 100, 50), pygame.Rect(1500, 950, 100, 50)]  
         self.animation_delays = {
             "idle": 200,
             "run": 4,
@@ -68,7 +67,7 @@ class Player(pygame.sprite.Sprite):
             "attack": 10
         }
 
-        # Создаем объект для обработки коллизий
+        
         self.collision = CollisionLevel1()
 
     def update(self):
@@ -96,29 +95,32 @@ class Player(pygame.sprite.Sprite):
                 self.animation_counter = 0
 
             if self.on_ladder:
-                self.velocity_y = 0  # Не поддается гравитации, когда на лестнице
+                self.velocity_y = 0
 
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_UP]:
-                    self.y -= 10  # Двигаемся вверх по лестнице
-                    self.change_state("idle")  # Состояние "idle" при карабкании
+                    self.y -= 10
+                    self.change_state("idle")
                 elif keys[pygame.K_DOWN]:
-                    self.y += 10  # Двигаемся вниз по лестнице
+                    self.y += 10
                     self.change_state("idle")
             else:
-                # Применяем гравитацию, если игрок не на лестнице
-                if not self.on_platform:  # Если не на платформе, игрок продолжает падать
-                    self.velocity_y += self.gravity  # Применяем гравитацию
+                if not self.on_platform:
+                    self.velocity_y += self.gravity
 
                 self.y += self.velocity_y
 
-            # Проверка на платформу
             self.on_platform = self.collision.check_platform_collision(self)
 
-            # Обрабатываем столкновения с окружающими стенами
+            
+            self.on_boxes = self.check_box_collision()  
+
+            if self.on_boxes:
+                
+                self.x += self.velocity_x
+
             self.handle_collisions()
 
-            # Проверка на землю
             if self.y >= 1228:
                 self.y = 1228
                 self.velocity_y = 0
@@ -126,46 +128,46 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.on_ground = False
 
-            # Обновляем позицию по X
             self.x += self.velocity_x
             self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
-        # Проверяем столкновение с walls
-        if not self.collision.check_wall_collision(self):  # Нет столкновения с стеной
-            self.x += self.velocity_x  # Продолжаем движение, если нет коллизии с стенами
+        if not self.collision.check_wall_collision(self):
+            self.x += self.velocity_x
         else:
             if self.collision_type == 'wall':
-                # Логика, если столкновение с стеной
-                if self.velocity_x > 0:  # Двигаемся вправо
-                    # Проверяем, если игрок слишком близко к стене
+                if self.velocity_x > 0:
                     if self.rect.right + 5 >= self.collision.walls[0].left:
-                        self.rect.right = self.collision.walls[0].left - 5  # Останавливаем игрока
-                        self.velocity_x = 0  # Останавливаем движение по оси X
+                        self.rect.right = self.collision.walls[0].left - 5
+                        self.velocity_x = 0
                     else:
-                        self.x += self.velocity_x  # Иначе продолжаем движение
-
-                elif self.velocity_x < 0:  # Двигаемся влево
-                    # Проверяем, если игрок слишком близко к стене
+                        self.x += self.velocity_x
+                elif self.velocity_x < 0:
                     if self.rect.left - 5 <= self.collision.walls[0].right:
-                        self.rect.left = self.collision.walls[0].right + 5  # Останавливаем игрока
-                        self.velocity_x = 0  # Останавливаем движение по оси X
+                        self.rect.left = self.collision.walls[0].right + 5
+                        self.velocity_x = 0
                     else:
-                        self.x += self.velocity_x  # Иначе продолжаем движение
-
-            # Проверка для медленного движения или постоянных столкновений
+                        self.x += self.velocity_x
             if abs(self.velocity_x) > 0:
                 if self.rect.colliderect(self.collision.walls[0]):
-                    if self.velocity_x > 0:  # При движении вправо
+                    if self.velocity_x > 0:
                         while self.rect.colliderect(self.collision.walls[0]):
-                            self.rect.x -= 1000  # Откатываем по 1 пикселю назад
-                        self.velocity_x = 0  # Останавливаем движение по оси X
-                    elif self.velocity_x < 0:  # При движении влево
+                            self.rect.x -= 1000
+                        self.velocity_x = 0
+                    elif self.velocity_x < 0:
                         while self.rect.colliderect(self.collision.walls[0]):
-                            self.rect.x += 1  # Откатываем по 1 пикселю вперед
-                        self.velocity_x = 0  # Останавливаем движение по оси X
+                            self.rect.x += 1
+                        self.velocity_x = 0
 
         self.velocity_x = 0
+
+    def check_box_collision(self):
+        for box in self.boxes:
+            if self.rect.colliderect(box):
+                self.rect.y = box.top - self.rect.height  
+                self.velocity_y = 0  
+                return True
+        return False
 
     def take_damage(self, amount):
         self.health -= amount
@@ -198,21 +200,20 @@ class Player(pygame.sprite.Sprite):
         self.facing_left = False
 
     def jump(self):
-        # Проверяем, прошло ли достаточно времени с последнего прыжка и что игрок на земле или платформе
         current_time = pygame.time.get_ticks()
         if current_time - self.last_jump_time >= self.jump_delay and (
-                self.on_ground or self.on_platform or self.on_ladder):  # Позволяем прыгать на платформе
-            self.velocity_y = self.jump_strength  # Прыжок вверх
-            self.change_state("jump")  # Меняем состояние на "прыжок"
-            self.last_jump_time = current_time  # Обновляем время последнего прыжка
+                self.on_ground or self.on_platform or self.on_ladder):
+            self.velocity_y = self.jump_strength
+            self.change_state("jump")
+            self.last_jump_time = current_time
 
     def stop(self):
         self.velocity_x = 0
-        if self.on_ground and not self.on_ladder:  # Остановить движение, если не на лестнице
+        if self.on_ground and not self.on_ladder:
             self.change_state("idle")
 
     def attack(self):
-        self.change_state("attack")  # Атака происходит независимо от положения игрока
+        self.change_state("attack")
 
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:
@@ -221,5 +222,5 @@ class Player(pygame.sprite.Sprite):
 
     def climb_ladder(self):
         self.on_ladder = True
-        self.change_state("idle")  # Лестница = состояние idle
-        self.velocity_y = 0  # Когда на лестнице, гравитация не действует
+        self.change_state("idle")
+        self.velocity_y = 0
