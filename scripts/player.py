@@ -2,12 +2,11 @@ import pygame
 import os
 import re
 
-
-from collision import CollisionLevel1  
-
+from collision import CollisionLevel1
 
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites')
+
 
 def load_animations(folder, animation_names, scale_factor=2):
     animations = {}
@@ -27,11 +26,11 @@ def load_animations(folder, animation_names, scale_factor=2):
 animation_names = ["idle", "run", "jump", "fall", "death", "attack"]
 player_animations = load_animations(sprite_folder, animation_names)
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        
         self.x = x
         self.y = y
         self.state = "idle"
@@ -56,8 +55,7 @@ class Player(pygame.sprite.Sprite):
         self.last_jump_time = 0
         self.jump_delay = 500
         self.collision_type = 'none'
-        
-        self.boxes = [pygame.Rect(1000, 1000, 100, 50), pygame.Rect(1500, 950, 100, 50)]  
+        self.on_box=False
         self.animation_delays = {
             "idle": 200,
             "run": 4,
@@ -67,7 +65,6 @@ class Player(pygame.sprite.Sprite):
             "attack": 10
         }
 
-        
         self.collision = CollisionLevel1()
 
     def update(self):
@@ -82,21 +79,16 @@ class Player(pygame.sprite.Sprite):
             if self.animation_counter >= self.animation_delays[self.state]:
                 self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
                 self.image = self.animations[self.state][self.frame_index]
-
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
-
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
-
                 self.animation_counter = 0
 
             if self.on_ladder:
-                self.velocity_y = 0
-
+                self.velocity_y = 0  # Останавливаем вертикальную скорость, если на лестнице
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_UP]:
                     self.y -= 10
@@ -105,21 +97,18 @@ class Player(pygame.sprite.Sprite):
                     self.y += 10
                     self.change_state("idle")
             else:
-                if not self.on_platform:
-                    self.velocity_y += self.gravity
+                if not self.on_platform and not self.on_box:
+                    self.velocity_y += self.gravity  # Применяем гравитацию, если не на платформе или ящике
+                self.y += self.velocity_y  # Обновляем позицию по вертикали
 
-                self.y += self.velocity_y
+                # Проверяем коллизии с платформами и ящиками, чтобы позволить персонажу бегать по ним
+                if self.on_platform or self.on_box:
+                    self.velocity_y = 0  # Останавливаем вертикальное движение, если на платформе или ящике
 
             self.on_platform = self.collision.check_platform_collision(self)
+            self.on_box = self.collision.check_box_collision(self)
 
-            
-            self.on_boxes = self.check_box_collision()  
-
-            if self.on_boxes:
-                
-                self.x += self.velocity_x
-
-            self.handle_collisions()
+            self.handle_collisions() # ДЕЛО В ЭТИХ СТРОЧКАХ, ИЗЗА НИХ КОЛИЗИИ НЕТ!
 
             if self.y >= 1228:
                 self.y = 1228
@@ -132,10 +121,30 @@ class Player(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
+        # Проверяем коллизии с различными объектами
+        self.on_ground = self.collision.check_ground_collision(self)
+        self.on_ladder = self.collision.check_ladder_collision(self)
+        self.on_platform = self.collision.check_platform_collision(self)
+        self.on_box = self.collision.check_box_collision(self)
+        (self.collision_type)
+        # Устанавливаем тип коллизии в зависимости от того, что мы столкнулись
+        if self.on_ladder:
+            self.collision_type = 'ladder'
+            self.velocity_y = 0  # Блокируем гравитацию при подъеме по лестнице
+        elif self.on_platform:
+            self.collision_type = 'platform'
+            self.velocity_y = 0  # Останавливаем вертикальное движение, если стоим на платформе
+        elif self.on_box:
+            self.collision_type = 'box'
+            self.velocity_y = 0  # Останавливаем вертикальное движение, если стоим на ящике
+        else:
+            self.collision_type = 'none'
+
+        # Обработка коллизий с различными типами объектов
         if not self.collision.check_wall_collision(self):
             self.x += self.velocity_x
         else:
-            if self.collision_type == 'wall':
+            if self.collision_type == 'wall':  # Коллизия с стеной
                 if self.velocity_x > 0:
                     if self.rect.right + 5 >= self.collision.walls[0].left:
                         self.rect.right = self.collision.walls[0].left - 5
@@ -148,26 +157,35 @@ class Player(pygame.sprite.Sprite):
                         self.velocity_x = 0
                     else:
                         self.x += self.velocity_x
-            if abs(self.velocity_x) > 0:
-                if self.rect.colliderect(self.collision.walls[0]):
-                    if self.velocity_x > 0:
-                        while self.rect.colliderect(self.collision.walls[0]):
-                            self.rect.x -= 1000
+
+            elif self.collision_type == 'platform':  # Коллизия с платформой
+                if self.velocity_x > 0:
+                    if self.rect.right + 5 >= self.collision.platforms[0].left:
+                        self.rect.right = self.collision.platforms[0].left - 5
                         self.velocity_x = 0
-                    elif self.velocity_x < 0:
-                        while self.rect.colliderect(self.collision.walls[0]):
-                            self.rect.x += 1
+                elif self.velocity_x < 0:
+                    if self.rect.left - 5 <= self.collision.platforms[0].right:
+                        self.rect.left = self.collision.platforms[0].right + 5
                         self.velocity_x = 0
 
+            elif self.collision_type == 'box':  # Коллизия с ящиком
+                if self.velocity_x > 0:
+                    if self.rect.right + 5 >= self.collision.boxes[0].left:
+                        self.rect.right = self.collision.boxes[0].left - 5
+                        self.velocity_x = 0
+
+
+            elif self.collision_type == 'ladder':  # Коллизия с лестницей
+                # Здесь можно добавить логику для предотвращения движения по лестнице
+                if self.velocity_y != 0:
+                    self.velocity_y = 0  # Блокируем падение, если мы на лестнице
+                self.y += self.velocity_y  # Лестницу не стоит двигать по вертикали
+                # Можно добавить дополнительные действия при столкновении с лестницей
+                if self.rect.colliderect(self.collision.ladders[0]):
+                    self.y = self.collision.ladders[0].top - self.rect.height
+
+        # Останавливаем движение по оси X после обработки коллизий
         self.velocity_x = 0
-
-    def check_box_collision(self):
-        for box in self.boxes:
-            if self.rect.colliderect(box):
-                self.rect.y = box.top - self.rect.height  
-                self.velocity_y = 0  
-                return True
-        return False
 
     def take_damage(self, amount):
         self.health -= amount

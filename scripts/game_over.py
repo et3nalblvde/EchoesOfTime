@@ -43,6 +43,6 @@ class GameOverScreen:
     def handle_events(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.restart_button.collidepoint(event.pos):
-                self.restart_game()  # Перезапуск игры
+                self.restart_game()  
             elif self.exit_button.collidepoint(event.pos):
-                self.exit_to_main_menu()  # Выход в главное меню, без закрытия игры
+                self.exit_to_main_menu()  

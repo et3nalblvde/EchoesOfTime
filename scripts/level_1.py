@@ -123,7 +123,7 @@ def start_level_1(screen):
             
             if shadow.on_ladder:
                 if keys[pygame.K_UP]:
-                    shadow.y -= 10  
+                    shadow.y -= 10
                     shadow.change_state("idle")  
                 elif keys[pygame.K_DOWN]:
                     shadow.y += 10  

@@ -72,8 +72,8 @@ def draw_gradient_background(surface):
         pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
 
 def draw_button(surface, button, text, is_hovered):
-    # Рисуем прямоугольник вокруг кнопки желтым цветом
-    pygame.draw.rect(surface, (255, 255, 0), button, 3)  # Жёлтый прямоугольник
+    
+    pygame.draw.rect(surface, (255, 255, 0), button, 3)  
     text_surface = font.render(text, True, (255, 255, 255))
     surface.blit(text_surface, (
         button.centerx - text_surface.get_width() // 2,
@@ -97,28 +97,28 @@ def draw_main_menu(screen, current_frame):
 
 
 def handle_start_button(event):
-    """Обработка событий кнопки 'Начать игру'."""
+    
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
         start_level_1(screen)
-        return False  # Переход на уровень 1, закрываем меню
+        return False  
     return True
 
 def handle_settings_button(event, settings_menu):
-    """Обработка событий кнопки 'Настройки'."""
+    
     if event.type == pygame.MOUSEBUTTONDOWN and settings_button.collidepoint(event.pos):
         settings_menu = SettingsMenu(screen, settings)
-        return settings_menu, True  # Переход в меню настроек
-    return settings_menu, True  # Оставляем меню открытым
+        return settings_menu, True  
+    return settings_menu, True  
 
 
 def handle_quit_button(event):
-    """Обработка событий кнопки 'Выйти в меню'."""
+    
     if event.type == pygame.MOUSEBUTTONDOWN and quit_button.collidepoint(event.pos):
-        return False  # Возврат в главное меню, закрываем меню
+        return False  
     return True
 
 def handle_menu_events(event, settings_menu):
-    """Обработчик событий в главном меню."""
+    
     if event.type == pygame.QUIT:
         return False, settings_menu
 
@@ -127,7 +127,7 @@ def handle_menu_events(event, settings_menu):
             settings_menu = None
         return True, settings_menu
 
-    # Обработка кнопок
+    
     running = True
     running = handle_start_button(event) and running
     settings_menu, running = handle_settings_button(event, settings_menu)
@@ -150,7 +150,7 @@ def main_menu(screen):
         for event in pygame.event.get():
             running, settings_menu = handle_menu_events(event, settings_menu)
             if not running:
-                break  # Прерываем цикл, если нужно выйти из меню
+                break  
 
         if settings_menu:
             settings_menu.draw()
@@ -165,4 +165,4 @@ def main_menu(screen):
         pygame.display.flip()
         clock.tick(FPS)
 
-    pygame.quit()  # Убираем sys.exit(), чтобы игра не завершалась
+    pygame.quit()  
