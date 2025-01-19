@@ -4,7 +4,7 @@ class CollisionLevel1:
         self.ladders = [pygame.Rect(514, 1059, 50, 230), pygame.Rect(2423, 431, 50, 200)]
         self.ground_y = 1235
         self.walls = [
-            pygame.Rect(585, 1120, 150, 250),  # Пример стены
+            pygame.Rect(600, 1120, 150, 250),  # Пример стены
             pygame.Rect(2000, 900, 50, 300)  # Еще одна стена
         ]
         self.platforms = [
@@ -75,13 +75,28 @@ class CollisionLevel1:
                     player.velocity_y = 0  # Останавливаем вертикальное движение (прыжок)
 
                     # Продолжаем горизонтальное движение по платформе
-                    player.rect.x += player.velocity_x  # Двигаем игрока по платформе
+ # Двигаем игрока по платформе
 
-                    # Дополнительная защита от падения через платформу
+                    # Защита от выхода за пределы платформы
                     if player.rect.left < platform.left:
                         player.rect.left = platform.left  # Останавливаем игрока, если он выходит за пределы слева
                     elif player.rect.right > platform.right:
                         player.rect.right = platform.right  # Останавливаем игрока, если он выходит за пределы справа
+
+                # Платформа может принимать игрока только сверху, поэтому исключаем падение через платформу
+                elif player.rect.bottom > platform.top and player.velocity_y > 0:
+                    # Если игрок идет сверху вниз и попадает на платформу
+                    player.rect.bottom = platform.top  # Останавливаем его сверху платформы
+                    player.velocity_y = 0  # Останавливаем его вертикальное движение
+
+                    # Горизонтальное движение по платформе
+                    player.rect.x += player.velocity_x
+
+                    # Защита от выхода за пределы платформы
+                    if player.rect.left < platform.left:
+                        player.rect.left = platform.left
+                    elif player.rect.right > platform.right:
+                        player.rect.right = platform.right
 
                 return True  # Возвращаем True, если была найдена коллизия с платформой
         return False  # Возвращаем False, если коллизия не была найдена

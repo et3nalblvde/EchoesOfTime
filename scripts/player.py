@@ -111,7 +111,13 @@ class Player(pygame.sprite.Sprite):
                 self.velocity_y += self.gravity
                 self.y += self.velocity_y
 
-            # Обрабатываем столкновения с окружающими стенами и платформами
+            # Проверка на платформу
+            self.on_platform = self.collision.check_platform_collision(self)
+
+            if not self.on_platform:  # Если не на платформе, игрок продолжает падать
+                self.velocity_y += self.gravity  # Применяем гравитацию
+
+            # Обрабатываем столкновения с окружающими стенами
             self.handle_collisions()
 
             # Проверка на землю
@@ -127,10 +133,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
-        # Проверка столкновения с платформами
-        if not self.collision.check_platform_collision(self):  # Если нет коллизии с платформой
-            self.x += self.velocity_x  # Продолжаем движение по X
-
         # Проверяем столкновение с walls
         if not self.collision.check_wall_collision(self):  # Нет столкновения с стеной
             self.x += self.velocity_x  # Продолжаем движение, если нет коллизии с стенами
@@ -165,7 +167,7 @@ class Player(pygame.sprite.Sprite):
                             self.rect.x += 1  # Откатываем по 1 пикселю вперед
                         self.velocity_x = 0  # Останавливаем движение по оси X
 
-        self.velocity_x = 0  # После проверки коллизий, останавливаем движение по оси X
+        self.velocity_x = 0
 
     def take_damage(self, amount):
         self.health -= amount
@@ -222,4 +224,3 @@ class Player(pygame.sprite.Sprite):
         self.on_ladder = True
         self.change_state("idle")  # Лестница = состояние idle
         self.velocity_y = 0  # Когда на лестнице, гравитация не действует
-
