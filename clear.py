@@ -86,4 +86,4 @@ def remove_comments_from_project(directory):
 
 # Укажите путь к корню вашего проекта
 project_directory = 'C:/Users/aroki/PycharmProjects/EchoesOfTime'
-remove_comments_from_project(project_directory)
+# remove_comments_from_project(project_directory)

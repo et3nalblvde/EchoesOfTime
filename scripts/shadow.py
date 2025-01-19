@@ -29,8 +29,8 @@ class Shadow(pygame.sprite.Sprite):
 
         self.x = x
         self.y = y
-        self.state = "idle"  # Начальное состояние "idle"
-        self.animations = shadow_animations  # Все анимации для тени
+        self.state = "idle"  
+        self.animations = shadow_animations  
         self.frame_index = 0
         self.image = self.animations[self.state][self.frame_index]
         self.rect = self.image.get_rect()
@@ -48,7 +48,7 @@ class Shadow(pygame.sprite.Sprite):
         self.gravity = 0.5
         self.jump_strength = -10
         self.on_ground = False
-        self.on_ladder = False  # Переменная, чтобы отслеживать, на лестнице ли тень
+        self.on_ladder = False  
 
         self.animation_delays = {
             "idle": 10,
@@ -60,11 +60,11 @@ class Shadow(pygame.sprite.Sprite):
         self.animation_counter = 0
         self.facing_left = False
 
-        self.last_jump_time = 0  # Время последнего прыжка
-        self.jump_delay = 1000  # Задержка в 1 секунду (1000 миллисекунд)
+        self.last_jump_time = 0  
+        self.jump_delay = 1000  
 
     def update(self):
-        # Обновление анимации
+        
         self.animation_counter += 1
         if self.animation_counter >= self.animation_delays[self.state]:
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
@@ -80,24 +80,24 @@ class Shadow(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
             self.animation_counter = 0
 
-        # Обработка движения по вертикали (гравитация и карабкание)
+        
         if self.on_ladder:
-            self.velocity_y = 0  # Нет гравитации, если на лестнице
+            self.velocity_y = 0  
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]:
-                self.y -= 5  # Карабкание вверх
-                self.change_state("idle")  # Переход в состояние "climb"
+                self.y -= 5  
+                self.change_state("idle")  
             elif keys[pygame.K_DOWN]:
-                self.y += 5  # Карабкание вниз
-                self.change_state("idle")  # Переход в состояние "climb"
+                self.y += 5  
+                self.change_state("idle")  
             else:
-                self.change_state("idle")  # Если не двигается по лестнице, возвращаемся в idle
+                self.change_state("idle")  
 
         else:
             self.velocity_y += self.gravity
             self.y += self.velocity_y
 
-            if self.y >= 1228:  # Устанавливаем позицию на земле
+            if self.y >= 1228:  
                 self.y = 1228
                 self.velocity_y = 0
                 self.on_ground = True
@@ -133,11 +133,11 @@ class Shadow(pygame.sprite.Sprite):
         self.facing_left = False
 
     def jump(self):
-        current_time = pygame.time.get_ticks()  # Получаем текущее время в миллисекундах
-        if current_time - self.last_jump_time >= self.jump_delay:  # Проверяем, прошло ли 1 секунда
+        current_time = pygame.time.get_ticks()  
+        if current_time - self.last_jump_time >= self.jump_delay:  
             self.velocity_y = self.jump_strength
             self.change_state("jump")
-            self.last_jump_time = current_time  # Обновляем время последнего прыжка
+            self.last_jump_time = current_time  
 
     def stop(self):
         self.velocity_x = 0
@@ -145,6 +145,6 @@ class Shadow(pygame.sprite.Sprite):
             self.change_state("idle")
 
     def climb_ladder(self):
-        self.on_ladder = True  # Начать карабкаться
-        self.change_state("idle")  # Лестница = состояние idle
-        self.velocity_y = 0  # Когда на лестнице, гравитация не действует
+        self.on_ladder = True  
+        self.change_state("idle")  
+        self.velocity_y = 0  

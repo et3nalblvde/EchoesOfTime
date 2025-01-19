@@ -1,6 +1,9 @@
 import pygame
 import os
 import re
+
+from numba.core.typing.builtins import Print
+
 from collision import CollisionLevel1  # Импортируем класс для обработки коллизий с уровнями
 
 
@@ -51,14 +54,14 @@ class Player(pygame.sprite.Sprite):
         self.animation_counter = 0
         self.facing_left = False
         self.health = 3
-
+        self.last_direction = None
         # Время последнего прыжка
         self.last_jump_time = 0
         self.jump_delay = 500  # Задержка в 1 секунду (1000 миллисекунд)
-
+        self.collision_type = 'none'
         # Добавляем атрибуты для задержек анимации
         self.animation_delays = {
-            "idle": 20,
+            "idle": 200,
             "run": 4,
             "jump": 10,
             "fall": 10,
@@ -108,7 +111,7 @@ class Player(pygame.sprite.Sprite):
                 self.velocity_y += self.gravity
                 self.y += self.velocity_y
 
-            # Обрабатываем столкновения с окружающими стенами
+            # Обрабатываем столкновения с окружающими стенами и платформами
             self.handle_collisions()
 
             # Проверка на землю
@@ -124,19 +127,45 @@ class Player(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
-        # Проверка столкновений с уровнями (стенами, платформами и т.д.)
-        if not self.collision.check_wall_collision(self):  # Столкновение с стенами
+        # Проверка столкновения с платформами
+        if not self.collision.check_platform_collision(self):  # Если нет коллизии с платформой
+            self.x += self.velocity_x  # Продолжаем движение по X
+
+        # Проверяем столкновение с walls
+        if not self.collision.check_wall_collision(self):  # Нет столкновения с стеной
             self.x += self.velocity_x  # Продолжаем движение, если нет коллизии с стенами
-        if not self.collision.check_platform_collision(self):  # Столкновение с платформами
-            self.y += self.velocity_y  # Продолжаем движение по вертикали
+        else:
+            if self.collision_type == 'wall':
+                # Логика, если столкновение с стеной
+                if self.velocity_x > 0:  # Двигаемся вправо
+                    # Проверяем, если игрок слишком близко к стене
+                    if self.rect.right + 5 >= self.collision.walls[0].left:
+                        self.rect.right = self.collision.walls[0].left - 5  # Останавливаем игрока
+                        self.velocity_x = 0  # Останавливаем движение по оси X
+                    else:
+                        self.x += self.velocity_x  # Иначе продолжаем движение
 
-        # Проверка на лестницу
-        self.collision.check_ladder_collision(self)
+                elif self.velocity_x < 0:  # Двигаемся влево
+                    # Проверяем, если игрок слишком близко к стене
+                    if self.rect.left - 5 <= self.collision.walls[0].right:
+                        self.rect.left = self.collision.walls[0].right + 5  # Останавливаем игрока
+                        self.velocity_x = 0  # Останавливаем движение по оси X
+                    else:
+                        self.x += self.velocity_x  # Иначе продолжаем движение
 
-        # Обработка земли (если игрок упал на землю)
-        if self.collision.check_ground_collision(self):
-            self.velocity_y = 0
-            self.on_ground = True
+            # Проверка для медленного движения или постоянных столкновений
+            if abs(self.velocity_x) > 0:
+                if self.rect.colliderect(self.collision.walls[0]):
+                    if self.velocity_x > 0:  # При движении вправо
+                        while self.rect.colliderect(self.collision.walls[0]):
+                            self.rect.x -= 1  # Откатываем по 1 пикселю назад
+                        self.velocity_x = 0  # Останавливаем движение по оси X
+                    elif self.velocity_x < 0:  # При движении влево
+                        while self.rect.colliderect(self.collision.walls[0]):
+                            self.rect.x += 1  # Откатываем по 1 пикселю вперед
+                        self.velocity_x = 0  # Останавливаем движение по оси X
+
+        self.velocity_x = 0  # После проверки коллизий, останавливаем движение по оси X
 
     def take_damage(self, amount):
         self.health -= amount
@@ -193,3 +222,4 @@ class Player(pygame.sprite.Sprite):
         self.on_ladder = True
         self.change_state("idle")  # Лестница = состояние idle
         self.velocity_y = 0  # Когда на лестнице, гравитация не действует
+
