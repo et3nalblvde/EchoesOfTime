@@ -9,22 +9,28 @@ class CollisionLevel1:
         ]
         self.platforms = [
             pygame.Rect(591, 1060, 500, 50),
-            pygame.Rect(258, 322, 500, 50),
-            pygame.Rect(0, 697, 500, 50),
-            pygame.Rect(1671, 439, 500, 50),
-            pygame.Rect(780, 613, 500, 50),
-            pygame.Rect(2180, 732, 500, 50),
-            pygame.Rect(1022, 168, 500, 50),
-            pygame.Rect(1827, 168, 500, 50),
-            pygame.Rect(1315, 934, 500, 50)
+            pygame.Rect(258, 322, 700, 50),
+            pygame.Rect(0, 697, 650, 50),
+            pygame.Rect(1671, 439, 750, 50),
+            pygame.Rect(780, 613, 800, 50),
+            pygame.Rect(2180, 732, 700, 50),
+            pygame.Rect(1022, 168, 700, 50),
+            pygame.Rect(1827, 168, 700, 50),
+            pygame.Rect(1315, 934, 750, 50)
         ]
 
         self.boxes = [
             pygame.Rect(1091, 1145, 90, 90),
             pygame.Rect(1091, 1232, 90, 90),
             pygame.Rect(1177, 1232, 90, 90),
-
-            pygame.Rect(1500, 900, 50, 50),
+            pygame.Rect(1969, 847, 90, 90),
+            pygame.Rect(2128, 1144, 90, 90),
+            pygame.Rect(1500, 900, 90, 90),
+            pygame.Rect(2084, 1227, 90, 90),
+            pygame.Rect(2170, 1227, 90, 90),
+            pygame.Rect(1500, 900, 90, 90),
+            pygame.Rect(1162, 520, 70, 90),
+            pygame.Rect(460, 235, 70, 90),
         ]
         self.box_collision_debugged = False
 
