@@ -24,10 +24,8 @@ font = pygame.font.Font(FONT_PATH, base_font_size)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
 
-
-background_gif_path = os.path.join(ASSETS_DIR, 'sprites','background', 'background.gif')  
+background_gif_path = os.path.join(ASSETS_DIR, 'sprites','background', 'background.gif')
 background_image = Image.open(background_gif_path)
-
 
 background_frames = []
 for frame in range(background_image.n_frames):
@@ -74,17 +72,14 @@ def draw_gradient_background(surface):
         pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
 
 def draw_button(surface, button, text, is_hovered):
-    
-    text_surface = font.render(text, True, (255, 255, 255))  
+    text_surface = font.render(text, True, (255, 255, 255))
     surface.blit(text_surface, (
         button.centerx - text_surface.get_width() // 2,
         button.centery - text_surface.get_height() // 2
     ))
 
 
-
 def draw_main_menu(screen, current_frame):
-    
     background_resized = pygame.transform.scale(background_frames[current_frame], (SCREEN_WIDTH, SCREEN_HEIGHT))
     screen.blit(background_resized, (0, 0))
 
@@ -103,9 +98,9 @@ def main_menu(screen):
     running = True
     clock = pygame.time.Clock()
     settings_menu = None
-    current_frame = 0  
-    frame_delay = 2  
-    frame_counter = 0  
+    current_frame = 0
+    frame_delay = 2
+    frame_counter = 0
 
     update_button_positions()
 
@@ -120,15 +115,16 @@ def main_menu(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if start_button.collidepoint(event.pos):
                     start_level_1(screen)
+                    running = False  
                 elif settings_button.collidepoint(event.pos):
                     settings_menu = SettingsMenu(screen, settings)
+                    running = False  
                 elif quit_button.collidepoint(event.pos):
-                    running = False
+                    running = False  
 
         if settings_menu:
             settings_menu.draw()
         else:
-            
             if frame_counter >= frame_delay:
                 draw_main_menu(screen, current_frame)
                 current_frame = (current_frame + 1) % frame_count  

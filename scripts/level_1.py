@@ -1,41 +1,29 @@
 import pygame
+import os
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
 from health import Health
+from collision import CollisionLevel1
 
 WHITE = (255, 255, 255)
-DARK_GREEN = (34, 139, 34)
-BROWN = (139, 69, 19)
-GREY = (169, 169, 169)
-BLACK = (0, 0, 0)
 
-column_image = pygame.Surface((50, 200))
-column_image.fill(GREY)
-moss_image = pygame.Surface((50, 50))
-moss_image.fill(DARK_GREEN)
-vine_image = pygame.Surface((30, 200))
-vine_image.fill(BROWN)
+base_folder = os.path.dirname(os.path.abspath(__file__))
+level_1_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_1.png')
+
+level_1_image = pygame.image.load(level_1_image_path)
+
+def scale_background(screen):
+    screen_width, screen_height = screen.get_size()
+    return pygame.transform.scale(level_1_image, (screen_width, screen_height))
 
 def draw_background(screen):
-    screen.fill(WHITE)
-
-    for i in range(0, screen.get_width(), 100):
-        screen.blit(column_image, (i, screen.get_height() - 200))
-
-    for i in range(0, screen.get_width(), 150):
-        screen.blit(moss_image, (i, screen.get_height() - 220))
-
-    for i in range(0, screen.get_width(), 150):
-        screen.blit(vine_image, (i, screen.get_height() - 200))
-
-    pygame.draw.rect(screen, (255, 255, 200), pygame.Rect(100, 50, 200, 100), 2)
+    scaled_background = scale_background(screen).convert()
+    screen.blit(scaled_background, (0, 0))
 
 def start_level_1(screen):
-    player = Player(100, 400)
-    shadow = Shadow(100, 400)
-
-    
+    player = Player(288, 1230)
+    shadow = Shadow(100, 1230)
     health = Health(max_health=3, x=10, y=10, player=player)
 
     all_sprites = pygame.sprite.Group()
@@ -46,9 +34,11 @@ def start_level_1(screen):
 
     clock = pygame.time.Clock()
 
+    collision = CollisionLevel1()
+
     running = True
-    player_dead = False  
-    death_animation_playing = False  
+    player_dead = False
+    death_animation_playing = False
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -69,37 +59,43 @@ def start_level_1(screen):
             if controlling_player:
                 player.attack()
 
-        if keys[pygame.K_t]:  
-            health.take_damage(health.current_health)  
-            player.change_state("death")  
-
-        if keys[pygame.K_e]:  
-            health.take_damage(0.5)  
-
-        
-        if not health.is_alive() and not player_dead and not death_animation_playing:
-            print("Игрок умирает!")  
+        if keys[pygame.K_t]:
+            health.take_damage(health.current_health)
             player.change_state("death")
-            death_animation_playing = True  
-            pygame.time.wait(500)  
+
+        if not health.is_alive() and not player_dead and not death_animation_playing:
+            print("Игрок умирает!")
+            player.change_state("death")
+            death_animation_playing = True
+            pygame.time.wait(500)
 
         if death_animation_playing:
-            
-            if player.is_death_animation_finished():  
-                player_dead = True  
-                print("Анимация смерти завершена!")  
-                pygame.time.wait(500)  
+            if player.is_death_animation_finished():
+                player_dead = True
+                print("Анимация смерти завершена!")
+                pygame.time.wait(500)
 
         if player_dead:
-            
             def restart_game():
-                start_level_1(screen)  
+                start_level_1(screen)
+
             def exit_to_main_menu():
-                print("Выход в главное меню!")  
+                print("Выход в главное меню!")
 
             game_over_screen = GameOverScreen(screen, restart_game, exit_to_main_menu)
-            game_over_screen_loop(game_over_screen)  
-            running = False  
+            game_over_screen_loop(game_over_screen)
+            running = False
+
+        # Обработка коллизий
+        # Убедимся, что коллизии проверяются как для игрока, так и для тени
+        collision.check_ladder_collision(player)
+        collision.check_ladder_collision(shadow)  # Проверка для тени
+        collision.check_ground_collision(player)
+        collision.check_ground_collision(shadow)  # Проверка для тени
+        collision.check_platform_collision(player)  # Проверка для платформы
+        collision.check_platform_collision(shadow)  # Проверка для тени на платформе
+        collision.check_wall_collision(player)
+        collision.check_wall_collision(shadow)
 
         if controlling_player:
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -123,14 +119,28 @@ def start_level_1(screen):
             if keys[pygame.K_SPACE]:
                 shadow.jump()
 
+            # Управление для подъема/спуска тени по лестнице
+            if shadow.on_ladder:
+                if keys[pygame.K_UP]:
+                    shadow.y -= 10  # Двигаем тень вверх
+                    shadow.change_state("idle")  # Для тени можно установить состояние idle
+                elif keys[pygame.K_DOWN]:
+                    shadow.y += 10  # Двигаем тень вниз
+                    shadow.change_state("idle")
+
         draw_background(screen)
 
-        
         health.draw(screen)
 
         all_sprites.update()
 
         all_sprites.draw(screen)
+        collision.draw_collision_debug(screen)
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        font = pygame.font.Font(None, 36)
+        coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
+        screen.blit(coordinates_text, (10, 10))
 
         pygame.display.flip()
 
