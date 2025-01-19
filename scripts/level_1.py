@@ -86,14 +86,14 @@ def start_level_1(screen):
             game_over_screen_loop(game_over_screen)
             running = False
 
-        # Обработка коллизий
-        # Убедимся, что коллизии проверяются как для игрока, так и для тени
+        
+        
         collision.check_ladder_collision(player)
-        collision.check_ladder_collision(shadow)  # Проверка для тени
+        collision.check_ladder_collision(shadow)  
         collision.check_ground_collision(player)
-        collision.check_ground_collision(shadow)  # Проверка для тени
-        collision.check_platform_collision(player)  # Проверка для платформы
-        collision.check_platform_collision(shadow)  # Проверка для тени на платформе
+        collision.check_ground_collision(shadow)  
+        collision.check_platform_collision(player)  
+        collision.check_platform_collision(shadow)  
         collision.check_wall_collision(player)
         collision.check_wall_collision(shadow)
 
@@ -119,13 +119,13 @@ def start_level_1(screen):
             if keys[pygame.K_SPACE]:
                 shadow.jump()
 
-            # Управление для подъема/спуска тени по лестнице
+            
             if shadow.on_ladder:
                 if keys[pygame.K_UP]:
-                    shadow.y -= 10  # Двигаем тень вверх
-                    shadow.change_state("idle")  # Для тени можно установить состояние idle
+                    shadow.y -= 10  
+                    shadow.change_state("idle")  
                 elif keys[pygame.K_DOWN]:
-                    shadow.y += 10  # Двигаем тень вниз
+                    shadow.y += 10  
                     shadow.change_state("idle")
 
         draw_background(screen)

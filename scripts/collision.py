@@ -4,12 +4,19 @@ class CollisionLevel1:
         self.ladders = [pygame.Rect(514, 1059, 50, 230), pygame.Rect(2423, 431, 50, 200)]
         self.ground_y = 1235
         self.walls = [
-            pygame.Rect(600, 1120, 150, 250),  # Пример стены
-            pygame.Rect(2000, 900, 50, 300)  # Еще одна стена
+            pygame.Rect(600, 1120, 500, 250),  # Пример стены
         ]
         self.platforms = [
-            pygame.Rect(591, 1060, 500, 50),  # Пример платформы
-            pygame.Rect(1800, 1060, 500, 50)  # Еще одна платформа
+            pygame.Rect(591, 1060, 500, 50),
+            pygame.Rect(258, 322, 500, 50),
+            pygame.Rect(0, 697, 500, 50),
+            pygame.Rect(1671, 439, 500, 50),
+            pygame.Rect(780, 613, 500, 50),
+            pygame.Rect(2180, 732, 500, 50),
+            pygame.Rect(1022, 168, 500, 50),
+            pygame.Rect(1827, 168, 500, 50),
+            # Пример платформы
+            pygame.Rect(1315, 934, 500, 50)  # Еще одна платформа
         ]
 
     def check_wall_collision(self, player):
@@ -19,29 +26,19 @@ class CollisionLevel1:
 
                 # Двигается вправо
                 if player.velocity_x > 0:
-                    if player.rect.right + 5 >= wall.left:  # Если игрок в 5 пикселях от стены
-                        player.rect.right = wall.left - 5  # Останавливаем его на 5 пикселей раньше
+                    if player.rect.right >= wall.left:  # Если игрок в пределах стены
+                        player.rect.right = wall.left  # Останавливаем его на границе стены
                         player.velocity_x = 0  # Останавливаем движение по оси X
-
-                        # Постепенно откатываем игрока, если он застрял
-                        while player.rect.colliderect(wall):
-                            player.rect.x -= 1  # Откатываем по 1 пикселю назад
-                        player.velocity_x = 0  # Останавливаем движение
+                        return True  # Возвращаем True, так как была коллизия
 
                 # Двигается влево
                 elif player.velocity_x < 0:
-                    if player.rect.left - 5 <= wall.right:  # Если игрок в 5 пикселях от стены
-                        player.rect.left = wall.right + 5  # Останавливаем его на 5 пикселей раньше
+                    if player.rect.left <= wall.right:  # Если игрок в пределах стены
+                        player.rect.left = wall.right  # Останавливаем его на границе стены
                         player.velocity_x = 0  # Останавливаем движение по оси X
+                        return True  # Возвращаем True, так как была коллизия
 
-                        # Постепенно откатываем игрока, если он застрял
-                        while player.rect.colliderect(wall):
-                            player.rect.x += 1  # Откатываем по 1 пикселю вперед
-                        player.velocity_x = 0  # Останавливаем движение
-
-                print("Столкновение с стеной!")  # Пример: выводим сообщение в консоль
-                return True
-        return False
+        return False  # Возвращаем False, если коллизия не была найдена
 
     def check_ladder_collision(self, player):
         on_ladder = False
@@ -75,7 +72,7 @@ class CollisionLevel1:
                     player.velocity_y = 0  # Останавливаем вертикальное движение (прыжок)
 
                     # Продолжаем горизонтальное движение по платформе
- # Двигаем игрока по платформе
+                    player.rect.x += player.velocity_x  # Двигаем игрока по платформе
 
                     # Защита от выхода за пределы платформы
                     if player.rect.left < platform.left:
@@ -98,7 +95,8 @@ class CollisionLevel1:
                     elif player.rect.right > platform.right:
                         player.rect.right = platform.right
 
-                return True  # Возвращаем True, если была найдена коллизия с платформой
+                    return True  # Возвращаем True, если была найдена коллизия с платформой
+
         return False  # Возвращаем False, если коллизия не была найдена
 
     def draw_collision_debug(self, screen):

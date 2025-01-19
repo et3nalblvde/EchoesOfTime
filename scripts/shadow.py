@@ -85,7 +85,7 @@ class Shadow(pygame.sprite.Sprite):
             self.velocity_y = 0  
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]:
-                self.y -= 5  
+                self.y -= 50
                 self.change_state("idle")  
             elif keys[pygame.K_DOWN]:
                 self.y += 5  
