@@ -97,11 +97,12 @@ def draw_main_menu(screen, current_frame):
 
 
 def handle_start_button(event):
-    
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
+        pygame.mixer.music.fadeout(4000)  # Завершить музыку за 1 секунду
         start_level_1(screen)
-        return False  
+        return False
     return True
+
 
 def handle_settings_button(event, settings_menu):
     

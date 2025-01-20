@@ -2,6 +2,7 @@ import pygame
 import json
 import os
 from PIL import Image
+import pygame.mixer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
@@ -9,6 +10,11 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 SETTINGS_FILE = os.path.join(PROJECT_DIR, 'save', 'settings.json')
 BACKGROUND_GIF_PATH = os.path.join(ASSETS_DIR, 'sprites', 'background', 'background.gif')
+
+# Путь к музыкальному файлу
+MUSIC_FILE = os.path.join(ASSETS_DIR, 'sounds', 'main_theme', 'Resting_Grounds.mp3')
+
+# Инициализация модуля mixer
 
 
 background_image = Image.open(BACKGROUND_GIF_PATH)
@@ -19,8 +25,8 @@ for frame in range(background_image.n_frames):
     background_frames.append(frame_data)
 frame_count = len(background_frames)
 
-
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
+
 
 def load_settings():
     default_settings = {
@@ -53,10 +59,12 @@ def load_settings():
     else:
         return default_settings
 
+
 def save_settings(settings):
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
     with open(SETTINGS_FILE, "w") as file:
         json.dump(settings, file, indent=4)
+
 
 settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
@@ -66,13 +74,19 @@ MUSIC_VOLUME = settings["MUSIC_VOLUME"]
 SFX_VOLUME = settings["SFX_VOLUME"]
 ECHO_DELAY = settings["ECHO_DELAY"]
 ECHO_OPACITY = settings["ECHO_OPACITY"]
+pygame.mixer.init()
+
+# Загрузка музыки
+pygame.mixer.music.load(MUSIC_FILE)
+pygame.mixer.music.set_volume(MUSIC_VOLUME)  # Устанавливаем громкость из настроек
+pygame.mixer.music.play(-1)  # Циклическое воспроизведение
 
 class SettingsMenu:
     def __init__(self, screen, settings):
         self.screen = screen
         self.settings = settings
         self.base_font_size = 18
-        self.font = pygame.font.Font(FONT_PATH, self.base_font_size)  
+        self.font = pygame.font.Font(FONT_PATH, self.base_font_size)
         self.back_button_width = 200
         self.back_button_height = 50
         self.slider_width = 200
@@ -101,14 +115,14 @@ class SettingsMenu:
         self.font = pygame.font.Font(FONT_PATH, self.font_size)
 
     def draw(self):
-        frame_skip = 3  
+        frame_skip = 3
 
         current_frame = (pygame.time.get_ticks() // (
-                    100 * frame_skip)) % frame_count  
+                100 * frame_skip)) % frame_count
         background_resized = pygame.transform.scale(background_frames[current_frame],
                                                     (self.screen_width, self.screen_height))
 
-        self.screen.blit(background_resized, (0, 0))  
+        self.screen.blit(background_resized, (0, 0))
 
         title_text = self.font.render("Настройки", True, (255, 255, 255))
         self.screen.blit(title_text, (self.screen_width * 0.5 - title_text.get_width() * 0.5, self.screen_height * 0.1))
@@ -133,8 +147,7 @@ class SettingsMenu:
                 option_text = self.font.render(f"{option['name']}: {self.settings[option['key']]}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-        
-        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button, 2)  
+        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button, 2)
         back_text = self.font.render("Назад", True, (0, 0, 0))
         self.screen.blit(back_text, (
             self.screen_width * 0.5 - back_text.get_width() * 0.5, self.screen_height * 0.9))
@@ -146,7 +159,8 @@ class SettingsMenu:
             for i, option in enumerate(self.options):
                 y_offset = self.screen_height * 0.2 + i * (self.font_size * 1.5) - 30
                 if option["type"] == "slider":
-                    slider_rect = pygame.Rect(self.slider_x_position, y_offset + self.font_size - 80, self.slider_width, self.slider_height)
+                    slider_rect = pygame.Rect(self.slider_x_position, y_offset + self.font_size - 80, self.slider_width,
+                                              self.slider_height)
                     if slider_rect.collidepoint(mouse_x, mouse_y):
                         self.selected_option = i
                         break
@@ -181,10 +195,16 @@ class SettingsMenu:
 
     def adjust_slider(self, option, mouse_x):
         if self.is_dragging_slider:
-            slider_rect = pygame.Rect(self.slider_x_position, self.screen_height * 0.2 + self.selected_option * (self.font_size * 1.5) - 30 + self.font_size - 20, self.slider_width, self.slider_height)
             relative_x = mouse_x - self.slider_x_position
             new_value = max(0, min(1, relative_x / self.slider_width))
             self.settings[option["key"]] = new_value
+
+            # Применение настроек в реальном времени
+            if option["key"] == "MUSIC_VOLUME":
+                pygame.mixer.music.set_volume(new_value)
+            elif option["key"] == "SFX_VOLUME":
+                # Здесь можно добавить управление громкостью звуков (если используется)
+                pass
 
     def adjust_select(self, option):
         current_value = self.settings[option["key"]]
