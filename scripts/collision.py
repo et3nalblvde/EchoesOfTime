@@ -80,10 +80,10 @@ class CollisionLevel1:
         for platform in self.platforms:
             if platform.colliderect(player.rect):
                 player.collision_type = 'platform'
-                if player.velocity_y >= 0:  # Falling down or standing
+                if player.velocity_y >= 0:  
                     player.rect.bottom = platform.top
                     player.velocity_y = 0
-                    player.on_ground = True  # Indicate player is on the ground
+                    player.on_ground = True  
                     return True
         return False
 
@@ -91,10 +91,10 @@ class CollisionLevel1:
         for box in self.boxes:
             if player.rect.colliderect(box):
                 player.collision_type = 'box'
-                if player.velocity_y >= 0:  # Falling down or standing
+                if player.velocity_y >= 0:  
                     player.rect.bottom = box.top
                     player.velocity_y = 0
-                    player.on_ground = True  # Indicate player is on the ground
+                    player.on_ground = True  
                     return True
         return False
 

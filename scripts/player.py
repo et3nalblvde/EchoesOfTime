@@ -3,10 +3,11 @@ import os
 import re
 
 from collision import CollisionLevel1
+from settings import player_sounds  # Импортируем звуки из настроек
 
+pygame.mixer.init()
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites')
-sound_folder = os.path.join(base_folder, '..', 'assets', 'sounds', 'effects')
 
 def load_animations(folder, animation_names, scale_factor=2):
     animations = {}
@@ -25,16 +26,6 @@ def load_animations(folder, animation_names, scale_factor=2):
 
 animation_names = ["idle", "run", "jump", "fall", "death", "attack"]
 player_animations = load_animations(sprite_folder, animation_names)
-
-def load_sounds():
-    sounds = {
-        "jump": pygame.mixer.Sound(os.path.join(sound_folder, 'jump.mp3')),
-        "attack": pygame.mixer.Sound(os.path.join(sound_folder, 'attack.mp3')),
-        "walk": pygame.mixer.Sound(os.path.join(sound_folder, 'steps.ogg'))
-    }
-    return sounds
-player_sounds = load_sounds()
-
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -217,15 +208,22 @@ class Player(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def move_left(self):
-        self.velocity_x = -self.speed
-        self.change_state("run")
-        self.facing_left = True
-        player_sounds["walk"].play()
+        if self.state != "attack":  # Проверка, что персонаж не в атакующем состоянии
+            self.velocity_x = -self.speed
+            self.change_state("run")
+            self.facing_left = True
+            if self.on_ground:  # Звук шагов воспроизводится только если персонаж на земле
+                if not pygame.mixer.get_busy():  # Проверка, чтобы не зацикливать звук
+                    player_sounds["walk"].play()
+
     def move_right(self):
-        self.velocity_x = self.speed
-        self.change_state("run")
-        self.facing_left = False
-        player_sounds["walk"].play()
+        if self.state != "attack":  # Проверка, что персонаж не в атакующем состоянии
+            self.velocity_x = self.speed
+            self.change_state("run")
+            self.facing_left = False
+            if self.on_ground:  # Звук шагов воспроизводится только если персонаж на земле
+                if not pygame.mixer.get_busy():  # Проверка, чтобы не зацикливать звук
+                    player_sounds["walk"].play()
 
     def jump(self):
         current_time = pygame.time.get_ticks()
@@ -244,6 +242,7 @@ class Player(pygame.sprite.Sprite):
     def attack(self):
         self.change_state("attack")
         player_sounds["attack"].play()
+
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:
             return True
