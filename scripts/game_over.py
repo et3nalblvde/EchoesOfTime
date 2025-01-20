@@ -7,11 +7,11 @@ class GameOverScreen:
         self.restart_game = restart_game
         self.exit_to_main_menu = exit_to_main_menu
 
-        self.screen_width, self.screen_height = screen.get_size()  
+        self.screen_width, self.screen_height = screen.get_size()
         self.font = pygame.font.Font(None, 74)
         self.small_font = pygame.font.Font(None, 36)
         self.text_color = (255, 255, 255)
-        self.overlay_color = (0, 0, 0, 180)  
+        self.overlay_color = (0, 0, 0, 180)
 
         self.setup_buttons()
 
@@ -21,7 +21,6 @@ class GameOverScreen:
 
     def draw(self):
         overlay = pygame.Surface((self.screen_width, self.screen_height))
-        overlay.fill(self.overlay_color)
         self.screen.blit(overlay, (0, 0))
 
         text = self.font.render("Вы погибли", True, self.text_color)
@@ -43,6 +42,6 @@ class GameOverScreen:
     def handle_events(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.restart_button.collidepoint(event.pos):
-                self.restart_game()  
+                self.restart_game()
             elif self.exit_button.collidepoint(event.pos):
-                self.exit_to_main_menu()  
+                self.exit_to_main_menu()

@@ -1,11 +1,13 @@
 import pygame
-import sys
 import os
 from PIL import Image
 from scripts.settings import load_settings, SettingsMenu
 from level_1 import start_level_1
+from pause_menu import PauseMenu  
 
 pygame.init()
+
+
 settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
 SCREEN_HEIGHT = settings["SCREEN_HEIGHT"]
@@ -18,13 +20,16 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
+
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
+
 
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
 
-background_gif_path = os.path.join(ASSETS_DIR, 'sprites','background', 'background.gif')
+
+background_gif_path = os.path.join(ASSETS_DIR, 'sprites', 'background', 'background.gif')
 background_image = Image.open(background_gif_path)
 
 background_frames = []
@@ -43,20 +48,16 @@ def update_button_positions():
     center_x = SCREEN_WIDTH // 2
     center_y = SCREEN_HEIGHT // 2
 
-    # Уменьшаем расстояние между кнопками
-    button_spacing = button_height -150  # Уменьшено расстояние между кнопками
+    button_spacing = button_height - 150
 
-    # Определяем, сколько кнопок будет отображаться
-    if settings.get("Level_2", False):  # Если "Продолжить игру" True
-        buttons_count = 4  # 4 кнопки, включая "Продолжить игру"
+    if settings.get("Level_2", False):
+        buttons_count = 4
     else:
-        buttons_count = 3  # 3 кнопки, без "Продолжить игру"
+        buttons_count = 3
 
-    # Местоположение кнопок по вертикали
     total_height = buttons_count * button_height + (buttons_count - 1) * button_spacing
-    vertical_shift = (SCREEN_HEIGHT - total_height) // 2  # Сдвиг для центрирования кнопок
+    vertical_shift = (SCREEN_HEIGHT - total_height) // 2
 
-    # Перемещаем кнопку "Продолжить игру" на первую позицию, если она должна быть
     if settings.get("Level_2", False):
         continue_button = pygame.Rect(
             center_x - button_width // 2,
@@ -79,7 +80,7 @@ def update_button_positions():
             button_width, button_height
         )
     else:
-        continue_button = None  # Если не True, скрываем кнопку
+        continue_button = None
         start_button = pygame.Rect(
             center_x - button_width // 2,
             vertical_shift,
@@ -95,12 +96,6 @@ def update_button_positions():
             vertical_shift + 2 * (button_height + button_spacing),
             button_width, button_height
         )
-
-
-
-
-
-
 
 def draw_gradient_background(surface):
     top_color = pygame.Color(0, 0, 0)
@@ -142,18 +137,16 @@ def draw_main_menu(screen, current_frame):
 def handle_start_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
         pygame.mixer.music.fadeout(4000)
-        start_level_1(screen)
+        
+        start_level_1(screen, restart_main_menu, exit_to_main_menu)  
         return False
     return True
 
 def handle_continue_button(event):
     if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
-        # В будущем, когда добавите 2-й уровень, здесь будет вызов функции для начала 2-го уровня
         pygame.mixer.music.fadeout(4000)
-        # start_level_2(screen)  # Вызывать второй уровень, когда он будет готов
         return False
     return True
-
 
 def handle_settings_button(event, settings_menu):
     if event.type == pygame.MOUSEBUTTONDOWN and settings_button.collidepoint(event.pos):
@@ -163,7 +156,7 @@ def handle_settings_button(event, settings_menu):
 
 def handle_quit_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and quit_button.collidepoint(event.pos):
-        return False
+        return False  
     return True
 
 def handle_menu_events(event, settings_menu):
@@ -177,11 +170,12 @@ def handle_menu_events(event, settings_menu):
 
     running = True
     running = handle_start_button(event) and running
-    running = handle_continue_button(event) and running  # Обработка кнопки продолжить
+    running = handle_continue_button(event) and running
     settings_menu, running = handle_settings_button(event, settings_menu)
     running = handle_quit_button(event) and running
 
     return running, settings_menu
+
 
 def main_menu(screen):
     running = True
@@ -196,8 +190,8 @@ def main_menu(screen):
     while running:
         for event in pygame.event.get():
             running, settings_menu = handle_menu_events(event, settings_menu)
-            if not running:
-                break  
+            if not running:  
+                break
 
         if settings_menu:
             settings_menu.draw()
@@ -213,3 +207,12 @@ def main_menu(screen):
         clock.tick(FPS)
 
     pygame.quit()  
+
+
+def restart_main_menu():
+    pygame.init()  
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)  
+    main_menu(screen)  
+
+def exit_to_main_menu():
+    return True

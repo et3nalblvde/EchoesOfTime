@@ -3,7 +3,7 @@ import os
 import re
 
 from collision import CollisionLevel1
-from settings import player_sounds  # Импортируем звуки из настроек
+from settings import player_sounds  
 
 pygame.mixer.init()
 base_folder = os.path.dirname(os.path.abspath(__file__))
@@ -79,8 +79,8 @@ class Player(pygame.sprite.Sprite):
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
-                    self.attacking = True  # Завершаем атаку
-                    self.change_state(self.previous_state)  # Возвращаемся в предыдущее состояние
+                    self.attacking = True  
+                    self.change_state(self.previous_state)  
                 else:
                     self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
 
@@ -96,7 +96,7 @@ class Player(pygame.sprite.Sprite):
                 self.animation_counter = 0
 
             if self.on_ladder:
-                self.velocity_y = 0  # Останавливаем вертикальную скорость, если на лестнице
+                self.velocity_y = 0  
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_UP]:
                     self.y -= 10
@@ -106,12 +106,12 @@ class Player(pygame.sprite.Sprite):
                     self.change_state("idle")
             else:
                 if not self.on_platform and not self.on_box:
-                    self.velocity_y += self.gravity  # Применяем гравитацию, если не на платформе или ящике
-                self.y += self.velocity_y  # Обновляем позицию по вертикали
+                    self.velocity_y += self.gravity  
+                self.y += self.velocity_y  
 
-                # Проверяем коллизии с платформами и ящиками, чтобы позволить персонажу бегать по ним
+                
                 if self.on_platform or self.on_box:
-                    self.velocity_y = 0  # Останавливаем вертикальное движение, если на платформе или ящике
+                    self.velocity_y = 0  
 
             self.on_platform = self.collision.check_platform_collision(self)
             self.on_box = self.collision.check_box_collision(self)
@@ -131,30 +131,30 @@ class Player(pygame.sprite.Sprite):
 
 
     def handle_collisions(self):
-        # Проверяем коллизии с различными объектами
+        
         self.on_ground = self.collision.check_ground_collision(self)
         self.on_ladder = self.collision.check_ladder_collision(self)
         self.on_platform = self.collision.check_platform_collision(self)
         self.on_box = self.collision.check_box_collision(self)
         (self.collision_type)
-        # Устанавливаем тип коллизии в зависимости от того, что мы столкнулись
+        
         if self.on_ladder:
             self.collision_type = 'ladder'
-            self.velocity_y = 0  # Блокируем гравитацию при подъеме по лестнице
+            self.velocity_y = 0  
         elif self.on_platform:
             self.collision_type = 'platform'
-            self.velocity_y = 0  # Останавливаем вертикальное движение, если стоим на платформе
+            self.velocity_y = 0  
         elif self.on_box:
             self.collision_type = 'box'
-            self.velocity_y = 0  # Останавливаем вертикальное движение, если стоим на ящике
+            self.velocity_y = 0  
         else:
             self.collision_type = 'none'
 
-        # Обработка коллизий с различными типами объектов
+        
         if not self.collision.check_wall_collision(self):
             self.x += self.velocity_x
         else:
-            if self.collision_type == 'wall':  # Коллизия с стеной
+            if self.collision_type == 'wall':  
                 if self.velocity_x > 0:
                     if self.rect.right + 5 >= self.collision.walls[0].left:
                         self.rect.right = self.collision.walls[0].left - 5
@@ -168,7 +168,7 @@ class Player(pygame.sprite.Sprite):
                     else:
                         self.x += self.velocity_x
 
-            elif self.collision_type == 'platform':  # Коллизия с платформой
+            elif self.collision_type == 'platform':  
                 if self.velocity_x > 0:
                     if self.rect.right + 5 >= self.collision.platforms[0].left:
                         self.rect.right = self.collision.platforms[0].left - 5
@@ -178,23 +178,23 @@ class Player(pygame.sprite.Sprite):
                         self.rect.left = self.collision.platforms[0].right + 5
                         self.velocity_x = 0
 
-            elif self.collision_type == 'box':  # Коллизия с ящиком
+            elif self.collision_type == 'box':  
                 if self.velocity_x > 0:
                     if self.rect.right + 5 >= self.collision.boxes[0].left:
                         self.rect.right = self.collision.boxes[0].left - 5
                         self.velocity_x = 0
 
 
-            elif self.collision_type == 'ladder':  # Коллизия с лестницей
-                # Здесь можно добавить логику для предотвращения движения по лестнице
+            elif self.collision_type == 'ladder':  
+                
                 if self.velocity_y != 0:
-                    self.velocity_y = 0  # Блокируем падение, если мы на лестнице
-                self.y += self.velocity_y  # Лестницу не стоит двигать по вертикали
-                # Можно добавить дополнительные действия при столкновении с лестницей
+                    self.velocity_y = 0  
+                self.y += self.velocity_y  
+                
                 if self.rect.colliderect(self.collision.ladders[0]):
                     self.y = self.collision.ladders[0].top - self.rect.height
 
-        # Останавливаем движение по оси X после обработки коллизий
+        
         self.velocity_x = 0
 
     def take_damage(self, amount):
@@ -206,8 +206,8 @@ class Player(pygame.sprite.Sprite):
         if new_state in self.animations and new_state != self.state:
             if new_state == "attack":
                 self.attacking = True
-                self.previous_state = self.state  # Сохраняем предыдущее состояние
-                self.frame_index = 0  # Начинаем с первого кадра атаки
+                self.previous_state = self.state  
+                self.frame_index = 0  
                 self.state = new_state
                 self.image = self.animations[self.state][self.frame_index]
 
@@ -219,10 +219,10 @@ class Player(pygame.sprite.Sprite):
 
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
-                return  # Не переключаем на idle пока не завершится атака
+                return  
 
-            # Для других состояний
-            if new_state == "idle" and not self.attacking:  # Если не в атакующем состоянии
+            
+            if new_state == "idle" and not self.attacking:  
                 self.state = new_state
                 self.frame_index = 0
                 self.image = self.animations[self.state][self.frame_index]
@@ -249,21 +249,21 @@ class Player(pygame.sprite.Sprite):
                 self.rect.topleft = (self.x, self.y)
 
     def move_left(self):
-        if self.state != "attack":  # Проверка, что персонаж не в атакующем состоянии
+        if self.state != "attack":  
             self.velocity_x = -self.speed
             self.change_state("run")
             self.facing_left = True
-            if self.on_ground:  # Звук шагов воспроизводится только если персонаж на земле
-                if not pygame.mixer.get_busy():  # Проверка, чтобы не зацикливать звук
+            if self.on_ground:  
+                if not pygame.mixer.get_busy():  
                     player_sounds["walk"].play()
 
     def move_right(self):
-        if self.state != "attack":  # Проверка, что персонаж не в атакующем состоянии
+        if self.state != "attack":  
             self.velocity_x = self.speed
             self.change_state("run")
             self.facing_left = False
-            if self.on_ground:  # Звук шагов воспроизводится только если персонаж на земле
-                if not pygame.mixer.get_busy():  # Проверка, чтобы не зацикливать звук
+            if self.on_ground:  
+                if not pygame.mixer.get_busy():  
                     player_sounds["walk"].play()
 
     def jump(self):

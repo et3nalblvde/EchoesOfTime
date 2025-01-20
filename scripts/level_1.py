@@ -5,6 +5,7 @@ from player import Player
 from shadow import Shadow
 from health import Health
 from collision import CollisionLevel1
+from pause_menu import PauseMenu
 
 WHITE = (255, 255, 255)
 
@@ -21,7 +22,7 @@ def draw_background(screen):
     scaled_background = scale_background(screen).convert()
     screen.blit(scaled_background, (0, 0))
 
-def start_level_1(screen):
+def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     player = Player(288, 1230)
     shadow = Shadow(100, 1230)
     health = Health(max_health=3, x=10, y=10, player=player)
@@ -39,12 +40,43 @@ def start_level_1(screen):
     running = True
     player_dead = False
     death_animation_playing = False
+
+    
+    pause_menu = PauseMenu(screen)
+    is_paused = False
+    esc_pressed = False  
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
         keys = pygame.key.get_pressed()
+
+        
+        if keys[pygame.K_ESCAPE]:
+            if not esc_pressed:  
+                is_paused = not is_paused  
+                esc_pressed = True  
+        else:
+            esc_pressed = False  
+
+        if is_paused:
+            
+            result = pause_menu.handle_events(event)
+            pause_menu.draw()
+
+            if result == "quit":
+                exit_to_main_menu()  
+
+            if result == "continue":
+                is_paused = False  
+
+            pygame.display.flip()
+            continue  
+
+        
+        draw_background(screen)
 
         if keys[pygame.K_e]:
             if controlling_player:
@@ -77,27 +109,23 @@ def start_level_1(screen):
 
         if player_dead:
             def restart_game():
-                start_level_1(screen)
-
-            def exit_to_main_menu():
-                print("Выход в главное меню!")
+                start_level_1(screen, restart_main_menu, exit_to_main_menu)
 
             game_over_screen = GameOverScreen(screen, restart_game, exit_to_main_menu)
             game_over_screen_loop(game_over_screen)
             running = False
 
-        
-        
         collision.check_ladder_collision(player)
-        collision.check_ladder_collision(shadow)  
+        collision.check_ladder_collision(shadow)
         collision.check_ground_collision(player)
-        collision.check_ground_collision(shadow)  
-        collision.check_platform_collision(player)  
-        collision.check_platform_collision(shadow)  
+        collision.check_ground_collision(shadow)
+        collision.check_platform_collision(player)
+        collision.check_platform_collision(shadow)
         collision.check_wall_collision(player)
         collision.check_wall_collision(shadow)
         collision.check_box_collision(player)
         collision.check_box_collision(shadow)
+
         if controlling_player:
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 player.move_left()
@@ -120,16 +148,13 @@ def start_level_1(screen):
             if keys[pygame.K_SPACE]:
                 shadow.jump()
 
-            
             if shadow.on_ladder:
                 if keys[pygame.K_UP]:
                     shadow.y -= 10
-                    shadow.change_state("idle")  
-                elif keys[pygame.K_DOWN]:
-                    shadow.y += 10  
                     shadow.change_state("idle")
-
-        draw_background(screen)
+                elif keys[pygame.K_DOWN]:
+                    shadow.y += 10
+                    shadow.change_state("idle")
 
         health.draw(screen)
 

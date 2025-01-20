@@ -4,10 +4,10 @@ import os
 from PIL import Image
 import pygame.mixer
 
-# Инициализация модуля pygame.mixer
+
 pygame.mixer.init()
 
-# Пути к файлам
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
@@ -16,7 +16,7 @@ SETTINGS_FILE = os.path.join(PROJECT_DIR, 'save', 'settings.json')
 BACKGROUND_GIF_PATH = os.path.join(ASSETS_DIR, 'sprites', 'background', 'background.gif')
 MUSIC_FILE = os.path.join(ASSETS_DIR, 'sounds', 'main_theme', 'Resting_Grounds.mp3')
 
-# Функция для загрузки звуковых эффектов
+
 def load_sounds(volume):
     sound_folder = os.path.join(BASE_DIR, '..', 'assets', 'sounds', 'effects')
     sounds = {
@@ -24,16 +24,16 @@ def load_sounds(volume):
         "attack": pygame.mixer.Sound(os.path.join(sound_folder, 'attack.mp3')),
         "walk": pygame.mixer.Sound(os.path.join(sound_folder, 'steps.ogg'))
     }
-    # Устанавливаем громкость для всех звуков
+    
     for sound in sounds.values():
         sound.set_volume(volume)
     return sounds
 
 
-# Инициализация звуков
 
 
-# Загрузка кадров для фонового GIF
+
+
 background_image = Image.open(BACKGROUND_GIF_PATH)
 background_frames = []
 for frame in range(background_image.n_frames):
@@ -44,7 +44,7 @@ frame_count = len(background_frames)
 
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
-# Функции для загрузки и сохранения настроек
+
 def load_settings():
     default_settings = {
         "SCREEN_WIDTH": 1024,
@@ -81,7 +81,7 @@ def save_settings(settings):
     with open(SETTINGS_FILE, "w") as file:
         json.dump(settings, file, indent=4)
 
-# Инициализация настроек
+
 settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
 SCREEN_HEIGHT = settings["SCREEN_HEIGHT"]
@@ -92,12 +92,12 @@ ECHO_DELAY = settings["ECHO_DELAY"]
 ECHO_OPACITY = settings["ECHO_OPACITY"]
 level_2=settings["Level_2"]
 
-# Загрузка музыки
+
 pygame.mixer.music.load(MUSIC_FILE)
 pygame.mixer.music.set_volume(MUSIC_VOLUME)
 pygame.mixer.music.play(-1)
-player_sounds = load_sounds(SFX_VOLUME)  #
-# Класс для меню настроек
+player_sounds = load_sounds(SFX_VOLUME)  
+
 class SettingsMenu:
     def __init__(self, screen, settings):
         self.screen = screen
@@ -119,9 +119,9 @@ class SettingsMenu:
         self.update_resolution()
         self.is_dragging_slider = False
         self.dragged_slider = None
-        self.sound_effects = load_sounds(settings["SFX_VOLUME"])  # Загружаем звуковые эффекты
+        self.sound_effects = load_sounds(settings["SFX_VOLUME"])  
 
-    # Загружаем звуковые эффекты
+    
 
     def update_resolution(self):
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -222,9 +222,9 @@ class SettingsMenu:
             if option["key"] == "MUSIC_VOLUME":
                 pygame.mixer.music.set_volume(new_value)
             elif option["key"] == "SFX_VOLUME":
-                # Обновляем громкость для всех звуковых эффектов немедленно
+                
                 for sound_name, sound in self.sound_effects.items():
-                    sound.set_volume(new_value) #
+                    sound.set_volume(new_value) 
 
     def adjust_select(self, option):
         current_value = self.settings[option["key"]]
