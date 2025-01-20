@@ -35,6 +35,7 @@ class Player(pygame.sprite.Sprite):
         self.y = y
         self.state = "idle"
         self.animations = player_animations
+        self.attacking=False
         self.frame_index = 0
         self.image = self.animations[self.state][self.frame_index]
         self.rect = self.image.get_rect()
@@ -76,13 +77,20 @@ class Player(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
         else:
             self.animation_counter += 1
-            if self.animation_counter >= self.animation_delays[self.state]:
-                self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
+            if self.animation_counter >= self.animation_delays.get(self.state, 10):
+                if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
+                    self.attacking = True  # Завершаем атаку
+                    self.change_state(self.previous_state)  # Возвращаемся в предыдущее состояние
+                else:
+                    self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
+
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
+
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
                 self.animation_counter = 0
@@ -108,7 +116,7 @@ class Player(pygame.sprite.Sprite):
             self.on_platform = self.collision.check_platform_collision(self)
             self.on_box = self.collision.check_box_collision(self)
 
-            self.handle_collisions() # ДЕЛО В ЭТИХ СТРОЧКАХ, ИЗЗА НИХ КОЛИЗИИ НЕТ!
+            self.handle_collisions()
 
             if self.y >= 1228:
                 self.y = 1228
@@ -119,6 +127,8 @@ class Player(pygame.sprite.Sprite):
 
             self.x += self.velocity_x
             self.rect.topleft = (self.x, self.y)
+
+
 
     def handle_collisions(self):
         # Проверяем коллизии с различными объектами
@@ -193,19 +203,50 @@ class Player(pygame.sprite.Sprite):
             self.health = 0
 
     def change_state(self, new_state):
-        if new_state == "death" or (new_state != "idle" and new_state in self.animations and new_state != self.state):
-            self.state = new_state
-            self.frame_index = 0
-            self.image = self.animations[self.state][self.frame_index]
+        if new_state in self.animations and new_state != self.state:
+            if new_state == "attack":
+                self.attacking = True
+                self.previous_state = self.state  # Сохраняем предыдущее состояние
+                self.frame_index = 0  # Начинаем с первого кадра атаки
+                self.state = new_state
+                self.image = self.animations[self.state][self.frame_index]
 
-            self.image = pygame.transform.scale(self.image, (
-                self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+                self.image = pygame.transform.scale(self.image, (
+                    self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
 
-            if self.facing_left:
-                self.image = pygame.transform.flip(self.image, True, False)
+                if self.facing_left:
+                    self.image = pygame.transform.flip(self.image, True, False)
 
-            self.rect = self.image.get_rect()
-            self.rect.topleft = (self.x, self.y)
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (self.x, self.y)
+                return  # Не переключаем на idle пока не завершится атака
+
+            # Для других состояний
+            if new_state == "idle" and not self.attacking:  # Если не в атакующем состоянии
+                self.state = new_state
+                self.frame_index = 0
+                self.image = self.animations[self.state][self.frame_index]
+                self.image = pygame.transform.scale(self.image, (
+                    self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+
+                if self.facing_left:
+                    self.image = pygame.transform.flip(self.image, True, False)
+
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (self.x, self.y)
+            elif new_state != "idle":
+                self.state = new_state
+                self.frame_index = 0
+                self.image = self.animations[self.state][self.frame_index]
+
+                self.image = pygame.transform.scale(self.image, (
+                    self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+
+                if self.facing_left:
+                    self.image = pygame.transform.flip(self.image, True, False)
+
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (self.x, self.y)
 
     def move_left(self):
         if self.state != "attack":  # Проверка, что персонаж не в атакующем состоянии

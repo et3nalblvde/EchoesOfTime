@@ -90,6 +90,7 @@ MUSIC_VOLUME = settings["MUSIC_VOLUME"]
 SFX_VOLUME = settings["SFX_VOLUME"]
 ECHO_DELAY = settings["ECHO_DELAY"]
 ECHO_OPACITY = settings["ECHO_OPACITY"]
+level_2=settings["Level_2"]
 
 # Загрузка музыки
 pygame.mixer.music.load(MUSIC_FILE)
