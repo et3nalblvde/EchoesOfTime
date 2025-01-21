@@ -5,7 +5,7 @@ import re
 
 def load_heart_sprites():
     base_folder = os.path.dirname(os.path.abspath(__file__))
-    sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'heart')
+    sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites','player','heart')
 
 
 
