@@ -7,8 +7,8 @@
         0,
         0
     ],
-    "MUSIC_VOLUME": 0.135,
-    "SFX_VOLUME": 0.98,
+    "MUSIC_VOLUME": 0.035,
+    "SFX_VOLUME": 0.2,
     "FULLSCREEN": false,
     "VSYNC": true,
     "PARTICLES": true,
@@ -29,5 +29,6 @@
     "DEBUG_MODE": false,
     "SHADOWS_ENABLED": true,
     "ECHO_DELAY": 2,
-    "ECHO_OPACITY": 100
+    "ECHO_OPACITY": 100,
+    "Level_2": false
 }
