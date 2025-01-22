@@ -1,6 +1,6 @@
 import pygame
 import os
-import time  
+import time
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
@@ -35,23 +35,20 @@ import os
 def update_level_status(level, status):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+    settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
 
-    
     with open(settings_path, 'r') as file:
         settings = json.load(file)
 
-    
     settings[level] = status
 
-    
     with open(settings_path, 'w') as file:
         json.dump(settings, file, indent=4)
 
 
 import pygame
 import os
-import time  
+import time
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
@@ -86,16 +83,13 @@ import os
 def update_level_status(level, status):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+    settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
 
-    
     with open(settings_path, 'r') as file:
         settings = json.load(file)
 
-    
     settings[level] = status
 
-    
     with open(settings_path, 'w') as file:
         json.dump(settings, file, indent=4)
 
@@ -131,16 +125,13 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     is_paused = False
     esc_pressed = False
 
-    complete_level = False  
+    complete_level = False
 
-    
-    complete_zone = pygame.Rect(2438, 39, 140, 140)  
+    complete_zone = pygame.Rect(2438, 39, 140, 140)
 
-    
-    lever_1_rect = pygame.Rect(1800, 1000, 50, 100)  
-    lever_2_rect = pygame.Rect(2000, 1000, 50, 100)  
+    lever_1_rect = pygame.Rect(1800, 1000, 50, 100)
+    lever_2_rect = pygame.Rect(2000, 1000, 50, 100)
 
-    
     lever_1_raised = True
     lever_2_raised = True
 
@@ -240,21 +231,17 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                     shadow.y += 10
                     shadow.change_state("idle")
 
-        
         if lever_1_rect.collidepoint(player.x, player.y):
             lever_1_raised = True
         if lever_2_rect.collidepoint(player.x, player.y):
             lever_2_raised = True
 
-        
         if lever_1_raised and lever_2_raised and complete_zone.collidepoint(player.x, player.y):
             complete_level = True
-            pygame.time.wait(10)  
+            pygame.time.wait(10)
 
-            
             update_level_status('Level_2', True)
 
-            
             screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             congratulations_screen = CongratulationsScreen(screen,
                                                            lambda: start_level_1(screen, restart_main_menu,
@@ -262,12 +249,10 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                                                            exit_to_main_menu)
             congratulations_screen.congratulations_screen()
 
-        
-        pygame.draw.rect(screen, (0, 255, 0), complete_zone, 3)  
+        pygame.draw.rect(screen, (0, 255, 0), complete_zone, 3)
 
-        
-        pygame.draw.rect(screen, (255, 0, 0), lever_1_rect)  
-        pygame.draw.rect(screen, (0, 0, 255), lever_2_rect)  
+        pygame.draw.rect(screen, (255, 0, 0), lever_1_rect)
+        pygame.draw.rect(screen, (0, 0, 255), lever_2_rect)
 
         health.draw(screen)
 
