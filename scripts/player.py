@@ -9,6 +9,7 @@ pygame.mixer.init()
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'player')
 
+
 def load_animations(folder, animation_names, scale_factor=2):
     animations = {}
     for anim in animation_names:
@@ -27,6 +28,7 @@ def load_animations(folder, animation_names, scale_factor=2):
 animation_names = ["idle", "run", "jump", "fall", "death", "attack"]
 player_animations = load_animations(sprite_folder, animation_names)
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -35,7 +37,7 @@ class Player(pygame.sprite.Sprite):
         self.y = y
         self.state = "idle"
         self.animations = player_animations
-        self.attacking=False
+        self.attacking = False
         self.frame_index = 0
         self.image = self.animations[self.state][self.frame_index]
         self.rect = self.image.get_rect()
@@ -56,7 +58,7 @@ class Player(pygame.sprite.Sprite):
         self.last_jump_time = 0
         self.jump_delay = 500
         self.collision_type = 'none'
-        self.on_box=False
+        self.on_box = False
         self.last_attack_time = 0
         self.attack_delay = 200
         self.animation_delays = {
@@ -72,32 +74,29 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
 
-        # Проверяем здоровье и меняем состояние на смерть, если здоровье 0
         if self.health <= 0 and self.state != "death":
             self.change_state("death")
-            self.frame_index = 0  # Начинаем анимацию смерти с первого кадра
+            self.frame_index = 0
 
         if self.state == "death":
-            # Обновляем анимацию смерти
+
             self.image = self.animations["death"][self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
 
-            # Если анимация смерти завершена, ничего не делаем (или можем вызвать перезапуск игры)
             if self.frame_index == len(self.animations["death"]) - 1:
-                return  # или перезапуск игры, или вывод сообщения
+                return
 
         else:
-            # Если игрок жив, обновляем другие анимации
+
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
-                    self.attacking = False  # Завершаем атаку
+                    self.attacking = False
                     self.change_state(self.previous_state)
                 else:
                     self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
 
-                # Обновляем изображение и позицию
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
@@ -108,7 +107,6 @@ class Player(pygame.sprite.Sprite):
                 self.rect.topleft = (self.x, self.y)
                 self.animation_counter = 0
 
-        # Дополнительная обработка движения и коллизий
         if self.on_ladder:
             self.velocity_y = 0
             keys = pygame.key.get_pressed()
@@ -160,7 +158,6 @@ class Player(pygame.sprite.Sprite):
         else:
             self.collision_type = 'none'
 
-
         if not self.collision.check_wall_collision(self):
             self.x += self.velocity_x
         else:
@@ -204,15 +201,12 @@ class Player(pygame.sprite.Sprite):
                 if self.rect.colliderect(self.collision.ladders[0]):
                     self.y = self.collision.ladders[0].top - self.rect.height
 
-
         self.velocity_x = 0
 
-    def take_damage(self, amount,bats):
+    def take_damage(self, amount, bats):
         self.health -= amount
         if self.health < 0:
             self.health = 0
-
-
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
@@ -232,7 +226,6 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
                 return
-
 
             if new_state == "idle" and not self.attacking:
                 self.state = new_state
@@ -295,19 +288,17 @@ class Player(pygame.sprite.Sprite):
     def attack(self, bats):
         current_time = pygame.time.get_ticks()
 
-        # Проверяем, прошло ли достаточно времени с последней атаки
         if current_time - self.last_attack_time >= self.attack_delay:
             self.change_state("attack")
             print('attack')
             player_sounds["attack"].play()
 
-            # Проверка, получает ли летучая мышь урон
             for bat in bats:
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
-                    bat.take_damage(1)  # Наносим 1 единицу урона
+                    bat.take_damage(1)
                 else:
                     self.health -= 1
-            # Обновляем время последней атаки
+
             self.last_attack_time = current_time
 
     def is_death_animation_finished(self):

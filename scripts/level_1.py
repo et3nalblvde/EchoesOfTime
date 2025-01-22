@@ -1,5 +1,6 @@
 import pygame
 import os
+import time  
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
@@ -7,20 +8,96 @@ from health import Health
 from collision import CollisionLevel1
 from pause_menu import PauseMenu
 from bat import Bat
+
 WHITE = (255, 255, 255)
+from level_complete import CongratulationsScreen
 
 base_folder = os.path.dirname(os.path.abspath(__file__))
 level_1_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_1.png')
 
 level_1_image = pygame.image.load(level_1_image_path)
 
+
 def scale_background(screen):
     screen_width, screen_height = screen.get_size()
     return pygame.transform.scale(level_1_image, (screen_width, screen_height))
 
+
 def draw_background(screen):
     scaled_background = scale_background(screen).convert()
     screen.blit(scaled_background, (0, 0))
+
+
+import json
+import os
+
+
+def update_level_status(level, status):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+
+    
+    with open(settings_path, 'r') as file:
+        settings = json.load(file)
+
+    
+    settings[level] = status
+
+    
+    with open(settings_path, 'w') as file:
+        json.dump(settings, file, indent=4)
+
+
+import pygame
+import os
+import time  
+from game_over import GameOverScreen
+from player import Player
+from shadow import Shadow
+from health import Health
+from collision import CollisionLevel1
+from pause_menu import PauseMenu
+from bat import Bat
+
+WHITE = (255, 255, 255)
+from level_complete import CongratulationsScreen
+
+base_folder = os.path.dirname(os.path.abspath(__file__))
+level_1_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_1.png')
+
+level_1_image = pygame.image.load(level_1_image_path)
+
+
+def scale_background(screen):
+    screen_width, screen_height = screen.get_size()
+    return pygame.transform.scale(level_1_image, (screen_width, screen_height))
+
+
+def draw_background(screen):
+    scaled_background = scale_background(screen).convert()
+    screen.blit(scaled_background, (0, 0))
+
+
+import json
+import os
+
+
+def update_level_status(level, status):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+
+    
+    with open(settings_path, 'r') as file:
+        settings = json.load(file)
+
+    
+    settings[level] = status
+
+    
+    with open(settings_path, 'w') as file:
+        json.dump(settings, file, indent=4)
 
 
 def start_level_1(screen, restart_main_menu, exit_to_main_menu):
@@ -36,10 +113,9 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     all_sprites.add(player)
     all_sprites.add(shadow)
 
-    # Создайте группу летучих мышей
     bats = pygame.sprite.Group()
     bat = Bat(bat_start_x, bat_start_y, bat_end_x, bat_end_y)
-    bats.add(bat)  # Добавьте летучую мышь в группу
+    bats.add(bat)
     all_sprites.add(bat)
 
     controlling_player = True
@@ -54,6 +130,19 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     pause_menu = PauseMenu(screen)
     is_paused = False
     esc_pressed = False
+
+    complete_level = False  
+
+    
+    complete_zone = pygame.Rect(2438, 39, 140, 140)  
+
+    
+    lever_1_rect = pygame.Rect(1800, 1000, 50, 100)  
+    lever_2_rect = pygame.Rect(2000, 1000, 50, 100)  
+
+    
+    lever_1_raised = True
+    lever_2_raised = True
 
     while running:
         for event in pygame.event.get():
@@ -95,7 +184,6 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
         if keys[pygame.K_f]:
             if controlling_player:
-                # Передаем bats в метод атаки
                 player.attack(bats)
 
         if keys[pygame.K_t]:
@@ -152,6 +240,35 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                     shadow.y += 10
                     shadow.change_state("idle")
 
+        
+        if lever_1_rect.collidepoint(player.x, player.y):
+            lever_1_raised = True
+        if lever_2_rect.collidepoint(player.x, player.y):
+            lever_2_raised = True
+
+        
+        if lever_1_raised and lever_2_raised and complete_zone.collidepoint(player.x, player.y):
+            complete_level = True
+            pygame.time.wait(10)  
+
+            
+            update_level_status('Level_2', True)
+
+            
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            congratulations_screen = CongratulationsScreen(screen,
+                                                           lambda: start_level_1(screen, restart_main_menu,
+                                                                                 exit_to_main_menu),
+                                                           exit_to_main_menu)
+            congratulations_screen.congratulations_screen()
+
+        
+        pygame.draw.rect(screen, (0, 255, 0), complete_zone, 3)  
+
+        
+        pygame.draw.rect(screen, (255, 0, 0), lever_1_rect)  
+        pygame.draw.rect(screen, (0, 0, 255), lever_2_rect)  
+
         health.draw(screen)
 
         all_sprites.update()
@@ -168,14 +285,3 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
     pygame.quit()
 
-
-def game_over_screen_loop(game_over_screen):
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            game_over_screen.handle_events(event)
-
-        game_over_screen.draw()
-        pygame.display.flip()

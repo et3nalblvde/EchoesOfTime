@@ -3,10 +3,9 @@ import os
 from PIL import Image
 from scripts.settings import load_settings, SettingsMenu
 from level_1 import start_level_1
-from pause_menu import PauseMenu  
-
+from pause_menu import PauseMenu
+import json
 pygame.init()
-
 
 settings = load_settings()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
@@ -20,14 +19,11 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, 'assets')
 FONTS_DIR = os.path.join(ASSETS_DIR, 'fonts')
 FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
-
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
 
-
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
-
 
 background_gif_path = os.path.join(ASSETS_DIR, 'sprites', 'background', 'background.gif')
 background_image = Image.open(background_gif_path)
@@ -39,6 +35,24 @@ for frame in range(background_image.n_frames):
     background_frames.append(frame_data)
 
 frame_count = len(background_frames)
+
+
+def update_level_2_status():
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+
+    
+    with open(settings_path, 'r') as f:
+        settings_data = json.load(f)
+
+    
+    settings_data["Level_2"] = False
+
+    
+    with open(settings_path, 'w') as f:
+        json.dump(settings_data, f, indent=4)
+
 
 def update_button_positions():
     global start_button, settings_button, quit_button, continue_button
@@ -97,6 +111,7 @@ def update_button_positions():
             button_width, button_height
         )
 
+
 def draw_gradient_background(surface):
     top_color = pygame.Color(0, 0, 0)
     bottom_color = pygame.Color(0, 0, 100)
@@ -108,6 +123,7 @@ def draw_gradient_background(surface):
         )
         pygame.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
 
+
 def draw_button(surface, button, text, is_hovered):
     pygame.draw.rect(surface, (255, 255, 0), button, 3)
     text_surface = font.render(text, True, (255, 255, 255))
@@ -115,6 +131,7 @@ def draw_button(surface, button, text, is_hovered):
         button.centerx - text_surface.get_width() // 2,
         button.centery - text_surface.get_height() // 2
     ))
+
 
 def draw_main_menu(screen, current_frame):
     background_resized = pygame.transform.scale(background_frames[current_frame], (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -134,11 +151,14 @@ def draw_main_menu(screen, current_frame):
     if continue_button:
         draw_button(screen, continue_button, "Продолжить игру", is_continue_hovered)
 
+
 def handle_start_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
-        pygame.mixer.music.fadeout(4000)
         
-        start_level_1(screen, restart_main_menu, exit_to_main_menu)  
+        update_level_2_status()
+
+        pygame.mixer.music.fadeout(4000)
+        start_level_1(screen, restart_main_menu, exit_to_main_menu)
         return False
     return True
 
@@ -148,16 +168,19 @@ def handle_continue_button(event):
         return False
     return True
 
+
 def handle_settings_button(event, settings_menu):
     if event.type == pygame.MOUSEBUTTONDOWN and settings_button.collidepoint(event.pos):
         settings_menu = SettingsMenu(screen, settings)
         return settings_menu, True
     return settings_menu, True
 
+
 def handle_quit_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and quit_button.collidepoint(event.pos):
-        return False  
+        return False
     return True
+
 
 def handle_menu_events(event, settings_menu):
     if event.type == pygame.QUIT:
@@ -190,7 +213,7 @@ def main_menu(screen):
     while running:
         for event in pygame.event.get():
             running, settings_menu = handle_menu_events(event, settings_menu)
-            if not running:  
+            if not running:
                 break
 
         if settings_menu:
@@ -206,13 +229,14 @@ def main_menu(screen):
         pygame.display.flip()
         clock.tick(FPS)
 
-    pygame.quit()  
+    pygame.quit()
 
 
 def restart_main_menu():
-    pygame.init()  
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)  
-    main_menu(screen)  
+    pygame.init()
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    main_menu(screen)
+
 
 def exit_to_main_menu():
     return True

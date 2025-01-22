@@ -111,7 +111,7 @@ class CollisionLevel1:
                 player.collision_type = 'box'
                 if player.velocity_y >= 0:
                     player.rect.bottom = box.top
-                    player.velocity_y = -1
+                    player.velocity_y = -1.5
                     player.velocity_x = 0
                     player.on_ground = True
                     return True
@@ -119,12 +119,4 @@ class CollisionLevel1:
 
 
     def draw_collision_debug(self, screen):
-
-        for ladder in self.ladders:
-            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)
-        for wall in self.walls:
-            pygame.draw.rect(screen, (255, 255, 0), wall, 6)
-        for platform in self.platforms:
-            pygame.draw.rect(screen, (0, 255, 0), platform, 6)
-        for box in self.boxes:
-            pygame.draw.rect(screen, (0, 0, 255), box, 6)
+        pass
