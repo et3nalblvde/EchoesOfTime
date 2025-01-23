@@ -11,6 +11,7 @@ pygame.mixer.init()
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'bat')
 
+
 def load_animations(folder, animation_names, scale_factor=2):
     animations = {}
     for anim in animation_names:
@@ -28,6 +29,7 @@ def load_animations(folder, animation_names, scale_factor=2):
 
 animation_names = ["attack", "die", "hurt", "run"]
 bat_animations = load_animations(sprite_folder, animation_names)
+
 
 class Bat(pygame.sprite.Sprite):
     def __init__(self, x, y, end_x, end_y):
@@ -48,8 +50,8 @@ class Bat(pygame.sprite.Sprite):
         self.speed = 1
         self.gravity = 0.2
         self.on_ground = False
-        self.health = 3  
-        self.hits_taken = 0  
+        self.health = 3
+        self.hits_taken = 0
         self.animation_counter = 0
         self.facing_left = False
         self.last_direction = None
@@ -63,7 +65,6 @@ class Bat(pygame.sprite.Sprite):
 
         self.collision = CollisionLevel1()
 
-        
         self.start_x = x
         self.start_y = y
         self.end_x = end_x
@@ -75,10 +76,10 @@ class Bat(pygame.sprite.Sprite):
         
         if self.health <= 0 and self.state != "die":
             self.change_state("die")
-            self.frame_index = 0  
-            self.velocity_x = 0  
-            self.velocity_y = 0  
-            self.on_ground = True  
+            self.frame_index = 0
+            self.velocity_x = 0
+            self.velocity_y = 0
+            self.on_ground = True
 
         if self.state == "die":
             self.animation_counter += 1
@@ -87,15 +88,16 @@ class Bat(pygame.sprite.Sprite):
                 self.animation_counter = 0
 
                 if self.frame_index >= len(self.animations["die"]):
-                    self.frame_index = len(self.animations["die"]) - 1  
-                    self.kill()  
+                    self.frame_index = len(self.animations["die"]) - 1
+                    self.kill()
 
             self.image = self.animations["die"][self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
 
-            return  
+            return
 
+        
         elif self.state == "hurt":
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays["hurt"]:
@@ -103,7 +105,7 @@ class Bat(pygame.sprite.Sprite):
                 self.animation_counter = 0
 
                 if self.frame_index >= len(self.animations["hurt"]):
-                    self.change_state("run")  
+                    self.change_state("run")
 
             self.image = self.animations["hurt"][self.frame_index]
             self.rect = self.image.get_rect()
@@ -115,7 +117,6 @@ class Bat(pygame.sprite.Sprite):
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
 
-                
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
@@ -129,20 +130,16 @@ class Bat(pygame.sprite.Sprite):
 
         
         if self.state != "die":
-            
             self.x += self.velocity_x
             self.y += self.velocity_y
 
-            
             if not self.on_ground:
                 self.velocity_y += self.gravity
 
             self.rect.topleft = (self.x, self.y)
             self.handle_collisions()
 
-            
             if self.x == self.target_x and self.y == self.target_y:
-                
                 if self.target_x == self.end_x:
                     self.target_x = self.start_x
                     self.target_y = self.start_y
@@ -153,17 +150,22 @@ class Bat(pygame.sprite.Sprite):
             self.move_towards_target()
 
         
-        if hero_attack_rect and player:
-            if self.rect.colliderect(hero_attack_rect):
-                if self.rect.colliderect(player.rect):
-                    self.take_damage(1)
-                    print("Player takes damage!")
+        if player:
+            
+            bat_center = pygame.Vector2(self.x + self.rect.width / 2, self.y + self.rect.height / 2)
+            player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)
+
+            distance = bat_center.distance_to(player_center)
+
+            
+            if distance <= 50:
+                self.take_damage(1)
+                print("Bat takes damage!")
 
     def handle_collisions(self):
-        
+
         self.on_ground = self.collision.check_ground_collision(self)
 
-        
         if self.velocity_x != 0:
             if self.collision.check_wall_collision(self):
                 self.velocity_x = 0
@@ -183,7 +185,7 @@ class Bat(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def move_towards_target(self):
-        
+
         if self.x < self.target_x:
             self.velocity_x = self.speed
             self.facing_left = True
@@ -204,7 +206,7 @@ class Bat(pygame.sprite.Sprite):
         self.hits_taken += 1
         if self.hits_taken >= 3:
             self.change_state("die")  
-            self.frame_index = 0  
+            self.frame_index = 0
             print("Bat is dead")
         else:
             self.change_state("hurt")  
@@ -213,8 +215,17 @@ class Bat(pygame.sprite.Sprite):
     def attack(self, player):
         if not self.attacking:
             self.attacking = True
-            player.take_damage(1)  
-            print("Bat attacks the player!")
-            self.change_state("attack")
             
+            attack_radius = 50  
+            attack_center = pygame.Vector2(self.x + self.rect.width / 2,
+                                           self.y + self.rect.height / 2)  
 
+            
+            player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)
+            distance = attack_center.distance_to(player_center)
+
+            if distance <= attack_radius:
+                player.take_damage(1)  
+                print("Bat attacks the player!")
+
+            self.change_state("attack")

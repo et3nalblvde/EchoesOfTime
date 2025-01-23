@@ -46,7 +46,7 @@ class Shadow(pygame.sprite.Sprite):
         self.velocity_y = 0
         self.speed = 5
         self.gravity = 0.5
-        self.jump_strength = -10
+        self.jump_strength = -16
         self.on_ground = False
         self.on_ladder = False  
 
@@ -63,7 +63,7 @@ class Shadow(pygame.sprite.Sprite):
         self.last_jump_time = 0  
         self.jump_delay = 1000  
 
-    def update(self):
+    def update(self,delta_time):
         
         self.animation_counter += 1
         if self.animation_counter >= self.animation_delays[self.state]:

@@ -48,7 +48,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity_y = 0
         self.speed = 5
         self.gravity = 0.5
-        self.jump_strength = -16
+        self.jump_strength = -25
         self.on_ground = False
         self.on_ladder = False
         self.animation_counter = 0
@@ -72,7 +72,7 @@ class Player(pygame.sprite.Sprite):
 
         self.collision = CollisionLevel1()
 
-    def update(self):
+    def update(self,delta_time):
 
         if self.health <= 0 and self.state != "death":
             self.change_state("death")

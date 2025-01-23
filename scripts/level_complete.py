@@ -5,13 +5,12 @@ from scripts.settings import load_settings
 pygame.init()
 
 class CongratulationsScreen:
-    def __init__(self, screen, restart_game, exit_to_main_menu):
+    def __init__(self, screen, exit_to_main_menu):
         
         self.settings = load_settings()
         self.SCREEN_WIDTH = self.settings["SCREEN_WIDTH"]
         self.SCREEN_HEIGHT = self.settings["SCREEN_HEIGHT"]
         self.FPS = self.settings["FPS"]
-        self.restart_game = restart_game
         self.exit_to_main_menu = exit_to_main_menu  
         
         self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -118,7 +117,6 @@ class CongratulationsScreen:
                 action = self.handle_events(event)
                 if action == "next_level":
                     print('restart')
-                    self.restart_game()
                 elif action == "main_menu":
                     print('main_menu')
                     self.exit_to_main_menu()
