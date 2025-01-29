@@ -68,6 +68,20 @@ from Door import Door
 import pygame
 import time
 
+def game_over_screen_loop(game_over_screen):
+    clock = pygame.time.Clock()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            result = game_over_screen.handle_events(event)
+            if result == "quit":
+                running = False
+        game_over_screen.draw()
+        pygame.display.flip()
+        clock.tick(60)
+
 
 def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     settings = load_settings()
@@ -169,6 +183,14 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
             health.take_damage(health.current_health)
             player.change_state("death")
             death_animation_playing = True
+            if not health.is_alive():
+                game_over_screen = GameOverScreen(
+                    screen,
+                    lambda: start_level_1(screen, restart_main_menu, exit_to_main_menu),
+                    exit_to_main_menu
+                )
+                game_over_screen_loop(game_over_screen)
+                running = False
 
         if death_animation_playing:
             if player.is_death_animation_finished():
