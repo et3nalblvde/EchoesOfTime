@@ -30,9 +30,10 @@ player_animations = load_animations(sprite_folder, animation_names)
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, sounds):
         super().__init__()
 
+        self.sounds = sounds
         self.x = x
         self.y = y
         self.state = "idle"
@@ -71,6 +72,10 @@ class Player(pygame.sprite.Sprite):
         }
 
         self.collision = CollisionLevel1()
+
+    def update_sfx_volume(self, volume):
+        for sound in self.sounds.values():
+            sound.set_volume(volume)
 
     def update(self,delta_time):
 
@@ -260,7 +265,7 @@ class Player(pygame.sprite.Sprite):
             self.facing_left = True
             if self.on_ground:
                 if not pygame.mixer.get_busy():
-                    player_sounds["walk"].play()
+                    self.sounds["walk"].play()
 
     def move_right(self):
         if self.state != "attack":
@@ -269,16 +274,17 @@ class Player(pygame.sprite.Sprite):
             self.facing_left = False
             if self.on_ground:
                 if not pygame.mixer.get_busy():
-                    player_sounds["walk"].play()
+                    self.sounds["walk"].play()
 
     def jump(self):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_jump_time >= self.jump_delay and (
-                self.on_ground or self.on_platform or self.on_ladder):
+                self.on_ground or self.on_platform or self.on_ladder
+        ):
             self.velocity_y = self.jump_strength
             self.change_state("jump")
             self.last_jump_time = current_time
-            player_sounds["jump"].play()
+            self.sounds["jump"].play()
 
     def stop(self):
         self.velocity_x = 0
@@ -287,18 +293,15 @@ class Player(pygame.sprite.Sprite):
 
     def attack(self, bats):
         current_time = pygame.time.get_ticks()
-
         if current_time - self.last_attack_time >= self.attack_delay:
             self.change_state("attack")
             print('attack')
-            player_sounds["attack"].play()
-
+            self.sounds["attack"].play()
             for bat in bats:
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
                     bat.take_damage(1)
                 else:
                     self.health -= 1
-
             self.last_attack_time = current_time
 
     def is_death_animation_finished(self):

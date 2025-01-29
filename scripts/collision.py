@@ -5,14 +5,14 @@ class CollisionLevel1:
         self.ladders = [pygame.Rect(514, 1059, 50, 230), pygame.Rect(2423, 431, 50, 250),pygame.Rect(961, 323, 50, 25)]
         self.ground_y = 1235
         self.walls = [pygame.Rect(591, 1080, 500, 50),
-            pygame.Rect(258, 342, 700, 50),
+            pygame.Rect(258, 342, 670, 50),
             pygame.Rect(0, 717, 650, 50),
-            pygame.Rect(1671, 459, 750, 50),
-            pygame.Rect(780, 633, 800, 50),
-            pygame.Rect(2180, 752, 700, 50),
-            pygame.Rect(1022, 180, 700, 50),
-            pygame.Rect(1827, 188, 700, 50),
-            pygame.Rect(1315, 950, 750, 50),
+            pygame.Rect(1671, 459, 720, 50),
+            pygame.Rect(780, 633, 770, 50),
+            pygame.Rect(2180, 752, 670, 50),
+            pygame.Rect(1022, 190, 670, 50),
+            pygame.Rect(1827, 188, 670, 50),
+            pygame.Rect(1315, 950, 730, 50),
             pygame.Rect(0, 0, 2, 1500),
             pygame.Rect(2559 , 0, 2, 1500)
 
@@ -119,4 +119,11 @@ class CollisionLevel1:
 
 
     def draw_collision_debug(self, screen):
-        pass
+        for ladder in self.ladders:
+            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)
+        for wall in self.walls:
+            pygame.draw.rect(screen, (0, 0, 0), wall, 6)
+        for platform in self.platforms:
+            pygame.draw.rect(screen, (0, 255, 0), platform, 6)
+        for box in self.boxes:
+            pygame.draw.rect(screen, (0, 0, 255), box, 6)

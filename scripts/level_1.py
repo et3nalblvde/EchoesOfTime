@@ -8,6 +8,8 @@ from health import Health
 from collision import CollisionLevel1
 from pause_menu import PauseMenu
 from bat import Bat
+from settings import load_sounds
+from settings import load_settings
 
 WHITE = (255, 255, 255)
 from level_complete import CongratulationsScreen
@@ -61,25 +63,30 @@ def update_level_status(level, status):
         json.dump(settings, file, indent=4)
 
 
-from Door import Door  
+from Door import Door
 
 import pygame
 import time
 
 
 def start_level_1(screen, restart_main_menu, exit_to_main_menu):
-    player = Player(2023, 63)
+    settings = load_settings()
+    MUSIC_VOLUME = settings["MUSIC_VOLUME"]
+    SFX_VOLUME = settings["SFX_VOLUME"]
+
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
+    player_sounds = load_sounds(SFX_VOLUME)
+
+    player = Player(2023, 63, player_sounds)
     shadow = Shadow(1576, 832)
     health = Health(max_health=3, x=10, y=10, player=player)
 
-    
-    door_x, door_y = 2398, 65  
+    door_x, door_y = 2398, 65
     sprites_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'doors')
     door = Door(door_x, door_y, sprites_path, frame_count=6)
 
-    
-    lever_1_x, lever_1_y = 1576, 892  
-    lever_2_x, lever_2_y = 2023, 123  
+    lever_1_x, lever_1_y = 1576, 892
+    lever_2_x, lever_2_y = 2023, 123
     lever_sprites_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'levers')
 
     lever_1 = Lever(lever_1_x, lever_1_y, lever_sprites_path, frame_count=5)
@@ -113,8 +120,8 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
     lever_1_raised = False
     lever_2_raised = False
-    lever_activation_time = None  
-    lever_activation_timeout = 2  
+    lever_activation_time = None
+    lever_activation_timeout = 2
 
     while running:
         for event in pygame.event.get():
@@ -145,7 +152,6 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
         draw_background(screen)
 
-        
         if keys[pygame.K_e]:
             if controlling_player:
                 player.stop()
@@ -155,18 +161,15 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
             controlling_player = not controlling_player
             pygame.time.wait(200)
 
-        
         if keys[pygame.K_f]:
             if controlling_player:
                 player.attack(bats)
 
-        
         if keys[pygame.K_t]:
             health.take_damage(health.current_health)
             player.change_state("death")
             death_animation_playing = True
 
-        
         if death_animation_playing:
             if player.is_death_animation_finished():
                 player_dead = True
@@ -176,7 +179,6 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                 game_over_screen_loop(game_over_screen)
                 running = False
 
-        
         collision.check_ladder_collision(player)
         collision.check_ladder_collision(shadow)
         collision.check_ground_collision(player)
@@ -188,7 +190,6 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
         collision.check_box_collision(player)
         collision.check_box_collision(shadow)
 
-        
         if controlling_player:
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 player.move_left()
@@ -218,51 +219,48 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                     shadow.y += 10
                     shadow.change_state("idle")
 
-        
-        if controlling_player:  
+        if controlling_player:
             if lever_1.rect.colliderect(player.rect.inflate(30, 30)) and keys[pygame.K_g] and not lever_1_raised:
                 lever_1.activate()
                 lever_1_raised = True
-                print("lever_1_raised =", lever_1_raised)  
+                print("lever_1_raised =", lever_1_raised)
 
             if lever_2.rect.colliderect(player.rect.inflate(30, 30)) and keys[pygame.K_g] and not lever_2_raised:
                 lever_2.activate()
                 lever_2_raised = True
-                print("lever_2_raised =", lever_2_raised)  
-        else:  
+                print("lever_2_raised =", lever_2_raised)
+        else:
             if lever_1.rect.colliderect(shadow.rect.inflate(30, 30)) and keys[pygame.K_g] and not lever_1_raised:
                 lever_1.activate()
                 lever_1_raised = True
-                print("lever_1_raised =", lever_1_raised)  
+                print("lever_1_raised =", lever_1_raised)
 
             if lever_2.rect.colliderect(shadow.rect.inflate(30, 30)) and keys[pygame.K_g] and not lever_2_raised:
                 lever_2.activate()
                 lever_2_raised = True
-                print("lever_2_raised =", lever_2_raised)  
+                print("lever_2_raised =", lever_2_raised)
 
-        
         if lever_1_raised and lever_2_raised:
             if lever_activation_time is None:
-                lever_activation_time = time.time()  
+                lever_activation_time = time.time()
                 print("Both levers raised, starting timer...")
 
             if time.time() - lever_activation_time < lever_activation_timeout:
-                
+
                 door.open()
                 complete_level = True
             else:
-                
-                
+
                 lever_1_raised = False
                 lever_2_raised = False
-                lever_activation_time = None  
-                print("Timeout reached, resetting levers...")  
+                lever_activation_time = None
+                print("Timeout reached, resetting levers...")
                 print("lever_1_raised =", lever_1_raised)
                 print("lever_2_raised =", lever_2_raised)
 
                 lever_1.deactivate()
                 lever_2.deactivate()
-                
+
                 lever_1.current_frame = 0
                 lever_1.image = lever_1.frames[lever_1.current_frame]
                 lever_2.current_frame = 0

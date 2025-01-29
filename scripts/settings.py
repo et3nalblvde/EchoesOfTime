@@ -222,9 +222,11 @@ class SettingsMenu:
             if option["key"] == "MUSIC_VOLUME":
                 pygame.mixer.music.set_volume(new_value)
             elif option["key"] == "SFX_VOLUME":
-                
                 for sound_name, sound in self.sound_effects.items():
-                    sound.set_volume(new_value) 
+                    sound.set_volume(new_value)
+                if hasattr(self, "player"):
+                    self.player.update_sfx_volume(new_value)
+            self.save_settings()
 
     def adjust_select(self, option):
         current_value = self.settings[option["key"]]
@@ -241,6 +243,8 @@ class SettingsMenu:
 
         if option["key"] == "DIFFICULTY":
             self.settings["DIFFICULTY"] = new_value
+
+        self.save_settings()
 
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as file:
