@@ -3,7 +3,6 @@ import os
 import re
 from math import sqrt
 
-from collision import CollisionLevel1
 from settings import player_sounds
 
 pygame.mixer.init()
@@ -45,17 +44,11 @@ class Bat(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
         self.scale_factor = 2
-        self.velocity_x = 0
-        self.velocity_y = 0
-        self.speed = 1
-        self.gravity = 0.2
-        self.on_ground = False
         self.health = 3
         self.hits_taken = 0
         self.animation_counter = 0
         self.facing_left = False
         self.last_direction = None
-        self.collision_type = 'none'
         self.animation_delays = {
             "run": 4,
             "attack": 6,
@@ -63,7 +56,6 @@ class Bat(pygame.sprite.Sprite):
             "hurt": 8,
         }
 
-        self.collision = CollisionLevel1()
 
         self.start_x = x
         self.start_y = y
@@ -129,25 +121,7 @@ class Bat(pygame.sprite.Sprite):
                 self.animation_counter = 0
 
         
-        if self.state != "die":
-            self.x += self.velocity_x
-            self.y += self.velocity_y
 
-            if not self.on_ground:
-                self.velocity_y += self.gravity
-
-            self.rect.topleft = (self.x, self.y)
-            self.handle_collisions()
-
-            if self.x == self.target_x and self.y == self.target_y:
-                if self.target_x == self.end_x:
-                    self.target_x = self.start_x
-                    self.target_y = self.start_y
-                else:
-                    self.target_x = self.end_x
-                    self.target_y = self.end_y
-
-            self.move_towards_target()
 
         
         if player:
@@ -162,13 +136,7 @@ class Bat(pygame.sprite.Sprite):
                 self.take_damage(1)
                 print("Bat takes damage!")
 
-    def handle_collisions(self):
 
-        self.on_ground = self.collision.check_ground_collision(self)
-
-        if self.velocity_x != 0:
-            if self.collision.check_wall_collision(self):
-                self.velocity_x = 0
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
@@ -184,23 +152,7 @@ class Bat(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
 
-    def move_towards_target(self):
 
-        if self.x < self.target_x:
-            self.velocity_x = self.speed
-            self.facing_left = True
-        elif self.x > self.target_x:
-            self.velocity_x = -self.speed
-            self.facing_left = False
-        else:
-            self.velocity_x = 0
-
-        if self.y < self.target_y:
-            self.velocity_y = self.speed
-        elif self.y > self.target_y:
-            self.velocity_y = -self.speed
-        else:
-            self.velocity_y = 0
 
     def take_damage(self, amount):
         self.hits_taken += 1

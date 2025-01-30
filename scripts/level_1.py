@@ -5,7 +5,6 @@ from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
 from health import Health
-from collision import CollisionLevel1
 from pause_menu import PauseMenu
 from bat import Bat
 from settings import load_sounds
@@ -83,8 +82,72 @@ def game_over_screen_loop(game_over_screen):
         clock.tick(60)
 
 
+import pygame
+
+def check_collisions(player, platforms):
+
+    player.x += player.velocity_x
+    player.y += player.velocity_y
+    player.rect.topleft = (player.x, player.y)
+
+    for platform in platforms:
+        if player.rect.colliderect(platform):
+            overlap_x = min(player.rect.right - platform.left, platform.right - player.rect.left)
+            overlap_y = min(player.rect.bottom - platform.top, platform.bottom - player.rect.top)
+
+            if overlap_x < overlap_y:
+                if player.velocity_x > 0:
+                    player.rect.right = platform.left
+                elif player.velocity_x < 0:
+                    player.rect.left = platform.right
+                player.x = player.rect.x
+                player.velocity_x = 0
+            else:
+                if player.velocity_y > 0:
+                    player.rect.bottom = platform.top
+                    player.on_ground = True
+                    if player.state == "jump":
+                        player.change_state("idle")
+                elif player.velocity_y < 0:
+                    player.rect.top = platform.bottom
+                player.y = player.rect.y
+                player.velocity_y = 0
+
+    player.rect.topleft = (player.x, player.y)
+
+
+
+
+
 def start_level_1(screen, restart_main_menu, exit_to_main_menu):
+    platforms = [
+        pygame.Rect(591, 1060, 500, 50),
+        pygame.Rect(258, 322, 700, 50),
+        pygame.Rect(0, 697, 650, 50),
+        pygame.Rect(1671, 439, 750, 50),
+        pygame.Rect(780, 613, 800, 50),
+        pygame.Rect(2180, 732, 730, 50),
+        pygame.Rect(1022, 168, 700, 50),
+        pygame.Rect(1827, 168, 730, 50),
+        pygame.Rect(1315, 934, 780, 50),
+
+        pygame.Rect(1091, 1145, 90, 90),
+        pygame.Rect(1091, 1232, 90, 90),
+        pygame.Rect(1177, 1232, 90, 90),
+        pygame.Rect(1969, 847, 90, 90),
+        pygame.Rect(2128, 1144, 90, 90),
+        pygame.Rect(2084, 1227, 90, 90),
+        pygame.Rect(2170, 1227, 90, 90),
+        pygame.Rect(1620, 1220, 80, 90),
+        pygame.Rect(1162, 520, 70, 90),
+        pygame.Rect(460, 235, 70, 90)
+
+    ]
+
+
+
     settings = load_settings()
+
     MUSIC_VOLUME = settings["MUSIC_VOLUME"]
     SFX_VOLUME = settings["SFX_VOLUME"]
 
@@ -120,7 +183,8 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
     controlling_player = True
     clock = pygame.time.Clock()
-    collision = CollisionLevel1()
+
+
 
     running = True
     player_dead = False
@@ -201,45 +265,9 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                 game_over_screen_loop(game_over_screen)
                 running = False
 
-        collision.check_ladder_collision(player)
-        collision.check_ladder_collision(shadow)
-        collision.check_ground_collision(player)
-        collision.check_ground_collision(shadow)
-        collision.check_platform_collision(player)
-        collision.check_platform_collision(shadow)
-        collision.check_wall_collision(player)
-        collision.check_wall_collision(shadow)
-        collision.check_box_collision(player)
-        collision.check_box_collision(shadow)
 
-        if controlling_player:
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                player.move_left()
-            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                player.move_right()
-            else:
-                player.stop()
 
-            if keys[pygame.K_SPACE]:
-                player.jump()
-        else:
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                shadow.move_left()
-            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                shadow.move_right()
-            else:
-                shadow.stop()
 
-            if keys[pygame.K_SPACE]:
-                shadow.jump()
-
-            if shadow.on_ladder:
-                if keys[pygame.K_UP]:
-                    shadow.y -= 10
-                    shadow.change_state("idle")
-                elif keys[pygame.K_DOWN]:
-                    shadow.y += 10
-                    shadow.change_state("idle")
 
         if controlling_player:
             if lever_1.rect.colliderect(player.rect.inflate(30, 30)) and keys[pygame.K_g] and not lever_1_raised:
@@ -300,14 +328,43 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
         all_sprites.update(clock.get_time() / 1000)
         all_sprites.draw(screen)
-        collision.draw_collision_debug(screen)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
         font = pygame.font.Font(None, 36)
         coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
         screen.blit(coordinates_text, (10, 10))
 
-        pygame.display.flip()
-        clock.tick(60)
+        clock = pygame.time.Clock()
+        running = True
 
-    pygame.quit()
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            keys = pygame.key.get_pressed()
+            player.handle_input(keys)
+
+            all_sprites.update(clock.get_time() / 1000)
+
+            check_collisions(player, platforms)
+
+            all_sprites.draw(screen)
+
+            draw_background(screen)
+
+            for platform in platforms:
+                pygame.draw.rect(screen, (100, 100, 100), platform)  # Серый цвет для платформ
+
+                # Отрисовка спрайтов
+            all_sprites.draw(screen)
+
+            # Отображение координат мыши
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            font = pygame.font.Font(None, 36)
+            coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
+            screen.blit(coordinates_text, (10, 10))
+
+            pygame.display.flip()
+            clock.tick(60)
+        pygame.quit()

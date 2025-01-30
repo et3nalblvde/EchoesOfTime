@@ -42,13 +42,7 @@ class Shadow(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
 
-        self.velocity_x = 0
-        self.velocity_y = 0
-        self.speed = 5
-        self.gravity = 0.5
-        self.jump_strength = -16
-        self.on_ground = False
-        self.on_ladder = False  
+
 
         self.animation_delays = {
             "idle": 10,
@@ -59,9 +53,6 @@ class Shadow(pygame.sprite.Sprite):
         }
         self.animation_counter = 0
         self.facing_left = False
-
-        self.last_jump_time = 0  
-        self.jump_delay = 1000  
 
     def update(self,delta_time):
         
@@ -81,31 +72,7 @@ class Shadow(pygame.sprite.Sprite):
             self.animation_counter = 0
 
         
-        if self.on_ladder:
-            self.velocity_y = 0  
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
-                self.y -= 50
-                self.change_state("idle")  
-            elif keys[pygame.K_DOWN]:
-                self.y += 5  
-                self.change_state("idle")  
-            else:
-                self.change_state("idle")  
 
-        else:
-            self.velocity_y += self.gravity
-            self.y += self.velocity_y
-
-            if self.y >= 1228:  
-                self.y = 1228
-                self.velocity_y = 0
-                self.on_ground = True
-            else:
-                self.on_ground = False
-
-        self.x += self.velocity_x
-        self.rect.topleft = (self.x, self.y)
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
@@ -122,29 +89,3 @@ class Shadow(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
 
-    def move_left(self):
-        self.velocity_x = -self.speed
-        self.change_state("run")
-        self.facing_left = True
-
-    def move_right(self):
-        self.velocity_x = self.speed
-        self.change_state("run")
-        self.facing_left = False
-
-    def jump(self):
-        current_time = pygame.time.get_ticks()  
-        if current_time - self.last_jump_time >= self.jump_delay:  
-            self.velocity_y = self.jump_strength
-            self.change_state("jump")
-            self.last_jump_time = current_time  
-
-    def stop(self):
-        self.velocity_x = 0
-        if self.on_ground:
-            self.change_state("idle")
-
-    def climb_ladder(self):
-        self.on_ladder = True  
-        self.change_state("idle")  
-        self.velocity_y = 0  
