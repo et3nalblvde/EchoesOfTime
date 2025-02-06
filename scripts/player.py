@@ -32,7 +32,7 @@ player_animations = load_animations(sprite_folder, animation_names)
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, sounds):
         super().__init__()
-
+        self.attacking = False
         self.sounds = sounds
         self.x = x
         self.y = y
@@ -47,9 +47,9 @@ class Player(pygame.sprite.Sprite):
         self.scale_factor = 2
         self.velocity_x = 0
         self.velocity_y = 0
-        self.speed = 5
+        self.speed = 2
         self.gravity = 0.5
-        self.jump_strength = -25
+        self.jump_strength = -6
         self.on_ground = False
         self.on_ladder = False
         self.animation_counter = 0
@@ -77,75 +77,65 @@ class Player(pygame.sprite.Sprite):
         for sound in self.sounds.values():
             sound.set_volume(volume)
 
-    def update(self,delta_time):
-
+    def update(self, delta_time):
         if self.health <= 0 and self.state != "death":
             self.change_state("death")
             self.frame_index = 0
 
         if self.state == "death":
-
             self.image = self.animations["death"][self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
-
             if self.frame_index == len(self.animations["death"]) - 1:
                 return
-
         else:
-
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
-                    self.attacking = False
-                    self.change_state(self.previous_state)
+                    self.attacking = False  # Сбрасываем флаг атаки
+                    self.change_state(self.previous_state)  # Возвращаемся к предыдущему состоянию
                 else:
                     self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
+                    self.image = self.animations[self.state][self.frame_index]
+                    self.image = pygame.transform.scale(self.image, (
+                        self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+                    if self.facing_left:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                    self.rect = self.image.get_rect()
+                    self.rect.topleft = (self.x, self.y)
+                    self.animation_counter = 0
 
-                self.image = self.animations[self.state][self.frame_index]
-                self.image = pygame.transform.scale(self.image, (
-                    self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-                if self.facing_left:
-                    self.image = pygame.transform.flip(self.image, True, False)
+            # Обновление позиции игрока
+            if self.on_ladder:
+                self.velocity_y = 0
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_UP]:
+                    self.y -= 10
+                    self.change_state("idle")
+                elif keys[pygame.K_DOWN]:
+                    self.y += 10
+                    self.change_state("idle")
+            else:
+                if not self.on_platform and not self.on_box:
+                    self.velocity_y += self.gravity
+                self.y += self.velocity_y
+                if self.on_platform or self.on_box:
+                    self.velocity_y = 0
+                self.handle_collisions()
 
-                self.rect = self.image.get_rect()
-                self.rect.topleft = (self.x, self.y)
-                self.animation_counter = 0
+            if self.y >= 1228:
+                self.y = 1228
+                self.velocity_y = 0
+                self.on_ground = True
+            else:
+                self.on_ground = False
 
-        if self.on_ladder:
-            self.velocity_y = 0
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
-                self.y -= 10
-                self.change_state("idle")
-            elif keys[pygame.K_DOWN]:
-                self.y += 10
-                self.change_state("idle")
-        else:
-            if not self.on_platform and not self.on_box:
-                self.velocity_y += self.gravity
-            self.y += self.velocity_y
-
-        if self.on_platform or self.on_box:
-            self.velocity_y = 0
-
-        self.on_platform = self.collision.check_platform_collision(self)
-        self.on_box = self.collision.check_box_collision(self)
-        self.handle_collisions()
-
-        if self.y >= 1228:
-            self.y = 1228
-            self.velocity_y = 0
-            self.on_ground = True
-        else:
-            self.on_ground = False
-
-        self.x += self.velocity_x
-        self.rect.topleft = (self.x, self.y)
+            self.x += self.velocity_x
+            self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
 
-        self.on_ground = self.collision.check_ground_collision(self)
+
         self.on_ladder = self.collision.check_ladder_collision(self)
         self.on_platform = self.collision.check_platform_collision(self)
         self.on_box = self.collision.check_box_collision(self)
@@ -217,44 +207,35 @@ class Player(pygame.sprite.Sprite):
         if new_state in self.animations and new_state != self.state:
             if new_state == "attack":
                 self.attacking = True
-                self.previous_state = self.state
+                self.previous_state = self.state  # Сохраняем предыдущее состояние
                 self.frame_index = 0
                 self.state = new_state
                 self.image = self.animations[self.state][self.frame_index]
-
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
-
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
                 return
-
             if new_state == "idle" and not self.attacking:
                 self.state = new_state
                 self.frame_index = 0
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
-
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
             elif new_state != "idle":
                 self.state = new_state
                 self.frame_index = 0
                 self.image = self.animations[self.state][self.frame_index]
-
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
-
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
 
@@ -293,16 +274,18 @@ class Player(pygame.sprite.Sprite):
 
     def attack(self, bats):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_attack_time >= self.attack_delay:
+        if not self.attacking and current_time - self.last_attack_time >= self.attack_delay:
             self.change_state("attack")
             print('attack')
             self.sounds["attack"].play()
+            self.attacking = True  # Устанавливаем флаг атаки
+            self.last_attack_time = current_time
+
             for bat in bats:
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
                     bat.take_damage(1)
                 else:
                     self.health -= 1
-            self.last_attack_time = current_time
 
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:

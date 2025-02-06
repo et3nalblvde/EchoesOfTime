@@ -203,8 +203,6 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
         collision.check_ladder_collision(player)
         collision.check_ladder_collision(shadow)
-        collision.check_ground_collision(player)
-        collision.check_ground_collision(shadow)
         collision.check_platform_collision(player)
         collision.check_platform_collision(shadow)
         collision.check_wall_collision(player)

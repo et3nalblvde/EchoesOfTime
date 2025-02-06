@@ -26,7 +26,7 @@ shadow_animations = load_animations(sprite_folder, animation_names)
 class Shadow(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-
+        self.attacking = False
         self.x = x
         self.y = y
         self.state = "idle"  
@@ -44,9 +44,9 @@ class Shadow(pygame.sprite.Sprite):
 
         self.velocity_x = 0
         self.velocity_y = 0
-        self.speed = 5
+        self.speed = 2
         self.gravity = 0.5
-        self.jump_strength = -16
+        self.jump_strength = -6
         self.on_ground = False
         self.on_ladder = False  
 

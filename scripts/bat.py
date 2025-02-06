@@ -34,7 +34,7 @@ bat_animations = load_animations(sprite_folder, animation_names)
 class Bat(pygame.sprite.Sprite):
     def __init__(self, x, y, end_x, end_y):
         super().__init__()
-
+        self.on_ground = False
         self.x = x
         self.y = y
         self.state = "run"
@@ -73,7 +73,7 @@ class Bat(pygame.sprite.Sprite):
         self.target_y = end_y
 
     def update(self, hero_attack_rect=None, player=None):
-        
+
         if self.health <= 0 and self.state != "die":
             self.change_state("die")
             self.frame_index = 0
@@ -97,7 +97,7 @@ class Bat(pygame.sprite.Sprite):
 
             return
 
-        
+
         elif self.state == "hurt":
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays["hurt"]:
@@ -112,7 +112,7 @@ class Bat(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
         else:
-            
+
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
@@ -128,7 +128,7 @@ class Bat(pygame.sprite.Sprite):
                 self.rect.topleft = (self.x, self.y)
                 self.animation_counter = 0
 
-        
+
         if self.state != "die":
             self.x += self.velocity_x
             self.y += self.velocity_y
@@ -149,26 +149,48 @@ class Bat(pygame.sprite.Sprite):
 
             self.move_towards_target()
 
-        
+
         if player:
-            
+
             bat_center = pygame.Vector2(self.x + self.rect.width / 2, self.y + self.rect.height / 2)
             player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)
 
             distance = bat_center.distance_to(player_center)
 
-            
+
             if distance <= 50:
                 self.take_damage(1)
                 print("Bat takes damage!")
 
     def handle_collisions(self):
+        # Проверка столкновений с платформами
+        for platform in self.collision.platforms:
+            if self.rect.colliderect(platform):
+                # Вычисляем перекрытие по осям X и Y
+                overlap_x = min(self.rect.right - platform.left, platform.right - self.rect.left)
+                overlap_y = min(self.rect.bottom - platform.top, platform.bottom - self.rect.top)
 
-        self.on_ground = self.collision.check_ground_collision(self)
+                if overlap_x < overlap_y:
+                    # Горизонтальная коррекция
+                    if self.velocity_x > 0:  # Движение вправо
+                        self.rect.right = platform.left
+                    elif self.velocity_x < 0:  # Движение влево
+                        self.rect.left = platform.right
+                    self.x = self.rect.x
+                    self.velocity_x = 0
+                else:
+                    # Вертикальная коррекция
+                    if self.velocity_y > 0:  # Падение на платформу
+                        self.rect.bottom = platform.top
+                        self.on_ground = True
+                        self.velocity_y = 0
+                    elif self.velocity_y < 0:  # Прыжок вверх
+                        self.rect.top = platform.bottom
+                    self.y = self.rect.y
+                    self.velocity_y = 0
 
-        if self.velocity_x != 0:
-            if self.collision.check_wall_collision(self):
-                self.velocity_x = 0
+        # Обновляем прямоугольник коллизии после всех изменений
+        self.rect.topleft = (self.x, self.y)
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
