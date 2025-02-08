@@ -2,7 +2,7 @@ import pygame
 import os
 import re
 
-from collision import CollisionLevel1
+from collision import CollisionLevel1, CollisionLevel2
 from settings import player_sounds
 
 pygame.mixer.init()
@@ -30,7 +30,7 @@ player_animations = load_animations(sprite_folder, animation_names)
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, sounds):
+    def __init__(self, x, y, sounds, levelnum=None):
         super().__init__()
         self.attacking = False
         self.sounds = sounds
@@ -47,9 +47,9 @@ class Player(pygame.sprite.Sprite):
         self.scale_factor = 2
         self.velocity_x = 0
         self.velocity_y = 0
-        self.speed = 2
+        self.speed = 7
         self.gravity = 0.5
-        self.jump_strength = -6
+        self.jump_strength = -12
         self.on_ground = False
         self.on_ladder = False
         self.animation_counter = 0
@@ -70,8 +70,14 @@ class Player(pygame.sprite.Sprite):
             "death": 10,
             "attack": 10
         }
+        self.health = 3  # Здоровье игрока
+        self.last_hit_time = 0  # Время последнего удара
+        self.hit_delay = 1000
 
-        self.collision = CollisionLevel1()
+        if levelnum == 1:
+            self.collision = CollisionLevel1()
+        elif levelnum == 2:
+            self.collision = CollisionLevel2()
 
     def update_sfx_volume(self, volume):
         for sound in self.sounds.values():
@@ -193,10 +199,14 @@ class Player(pygame.sprite.Sprite):
 
         self.velocity_x = 0
 
-    def take_damage(self, amount, bats):
-        self.health -= amount
-        if self.health < 0:
-            self.health = 0
+    def take_damage(self, amount):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_hit_time >= self.hit_delay:
+            self.health -= amount
+            if self.health < 0:
+                self.health = 0
+            print(f"Player takes {amount} damage! Remaining health: {self.health}")
+            self.last_hit_time = current_time
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:

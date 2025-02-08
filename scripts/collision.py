@@ -39,63 +39,53 @@ class CollisionLevel1:
 
         ]
 
-    def check_collisions(self, player, objects):
-        """
-        Общая функция для проверки коллизий.
-        :param player: Объект игрока.
-        :param objects: Список объектов для проверки коллизий.
-        """
-        # Применяем перемещение игрока
-        player.on_ground = True
-        player.x += player.velocity_x
-        player.y += player.velocity_y
-        player.rect.topleft = (player.x, player.y)
+    import math
 
-        # Флаги для обработки коллизий
+    def check_collisions(self, player, objects):
+
+        player.on_ground = True
+        new_x = player.x + player.velocity_x
+        new_y = player.y + player.velocity_y
+
+        temp_rect = player.rect.copy()
+        temp_rect.topleft = (new_x, new_y)
+
         horizontal_collision = False
         vertical_collision = False
 
         for obj in objects:
-            if player.rect.colliderect(obj):
-                # Вычисляем перекрытие по осям X и Y
-                overlap_x = min(player.rect.right - obj.left, obj.right - player.rect.left)
-                overlap_y = min(player.rect.bottom - obj.top, obj.bottom - player.rect.top)
+            if temp_rect.colliderect(obj):
+                player_center = (temp_rect.centerx, temp_rect.centery)
+                obj_center = (obj.centerx, obj.centery)
 
-                # Определяем, какая ось имеет меньшее перекрытие
-                if overlap_x < overlap_y:
-                    # Горизонтальная коррекция
-                    if player.velocity_x > 0:  # Движение вправо
-                        player.rect.right = obj.left
-                        player.x = player.rect.x
+                dx = player_center[0] - obj_center[0]
+                dy = player_center[1] - obj_center[1]
+
+                overlap_x = (temp_rect.width / 2) + (obj.width / 2) - abs(dx)
+                overlap_y = (temp_rect.height / 2) + (obj.height / 2) - abs(dy)
+
+                if overlap_x > 0 and overlap_y > 0:
+                    if overlap_x < overlap_y:
+                        if dx > 0:
+                            player.x += overlap_x
+                        else:
+                            player.x -= overlap_x
                         player.velocity_x = 0
                         horizontal_collision = True
-                    elif player.velocity_x < 0:  # Движение влево
-                        player.rect.left = obj.right
-                        player.x = player.rect.x
-                        player.velocity_x = 0
-                        horizontal_collision = True
-                else:
-                    # Вертикальная коррекция
-                    if player.velocity_y > 0:  # Падение на объект
-                        player.rect.bottom = obj.top
-                        player.y = player.rect.y
-                        player.on_ground = True
-                        player.velocity_y = 0
-                        vertical_collision = True
-                        if player.state == "jump":
-                            player.change_state("idle")
-                    elif player.velocity_y < 0:  # Прыжок вверх
-                        player.rect.top = obj.bottom
-                        player.y = player.rect.y
-                        player.velocity_y = 0
+                    else:
+                        if dy > 0:
+                            player.y += overlap_y
+                            player.velocity_y = 0
+                            player.on_ground = True
+                            if player.state == "jump":
+                                player.change_state("idle")
+                        else:
+                            player.y -= overlap_y
+                            player.velocity_y = 0
                         vertical_collision = True
 
-        # Если произошла горизонтальная коллизия, но не вертикальная, добавляем эффект скольжения
-        if horizontal_collision and not vertical_collision:
-            player.velocity_y += player.gravity  # Продолжаем падение вдоль стены
-
-        # Обновляем прямоугольник коллизии после всех изменений
         player.rect.topleft = (player.x, player.y)
+
 
     def check_wall_collision(self, player):
         self.check_collisions(player, self.walls)
@@ -122,7 +112,7 @@ class CollisionLevel1:
         self.check_collisions(player, self.boxes)
 
     def draw_collision_debug(self, screen):
-        # Отрисовка отладочных прямоугольников
+
         for ladder in self.ladders:
             pygame.draw.rect(screen, (255, 0, 0), ladder, 6)  # Красный цвет для лестниц
         for wall in self.walls:
@@ -138,86 +128,88 @@ import pygame
 class CollisionLevel2:
     def __init__(self, ):
         self.ladders = [
+            pygame.Rect(2202, 306, 50, 340),
+            pygame.Rect(500, 157, 50, 270),
+            pygame.Rect(1170, 1281, 90, 90),
+            pygame.Rect(345, 960, 60, 340),
+            pygame.Rect(2190,1166 ,50, 90)
+
 
         ]
-        self.ground_y = 1235
         self.walls = [
             pygame.Rect(0, 0, 2, 1500),
             pygame.Rect(2559, 0, 2, 1500)
         ]
         self.platforms = [
-            pygame.Rect(1676, 973, 524, 90),
+            pygame.Rect(1767, 688, 524, 90),
             pygame.Rect(2300, 973, 524, 90),
             pygame.Rect(1660, 1161, 524, 90),
-            pygame.Rect(1121, 959, 524, 90),
-            pygame.Rect(407, 957, 524, 90),
+            pygame.Rect(407, 957, 1254, 90),
             pygame.Rect(2277, 298, 524, 90),
             pygame.Rect(1546, 87, 524, 90),
             pygame.Rect(1010, 316, 524, 90),
             pygame.Rect(434, 439, 504, 90),
             pygame.Rect(0, 157, 484, 90),
-            pygame.Rect(0, 1379, 2560, 50)
+            pygame.Rect(0, 1365, 2560, 50)
         ]
         self.boxes = [
+            pygame.Rect(904, 1280, 90, 90),
+            pygame.Rect(1138, 1192, 90, 90),
+            pygame.Rect(1091, 1280, 90, 90),
+            pygame.Rect(1170, 1281, 90, 90),
+            pygame.Rect(1391, 1327, 125, 90),
+            pygame.Rect(1410, 1242, 90, 90),
+            pygame.Rect(2016, 1077, 90, 90),
+            pygame.Rect(1270, 873, 90, 90),
+            pygame.Rect(1900, 604, 90, 90),
+            pygame.Rect(1234, 230, 90, 90),
+            pygame.Rect(710, 358, 90, 90),
 
         ]
 
     def check_collisions(self, player, objects):
-        """
-        Общая функция для проверки коллизий.
-        :param player: Объект игрока.
-        :param objects: Список объектов для проверки коллизий.
-        """
-        # Применяем перемещение игрока
-        player.on_ground = True
-        player.x += player.velocity_x
-        player.y += player.velocity_y
-        player.rect.topleft = (player.x, player.y)
 
-        # Флаги для обработки коллизий
+        player.on_ground = True
+        new_x = player.x + player.velocity_x
+        new_y = player.y + player.velocity_y
+
+        temp_rect = player.rect.copy()
+        temp_rect.topleft = (new_x, new_y)
+
         horizontal_collision = False
         vertical_collision = False
 
         for obj in objects:
-            if player.rect.colliderect(obj):
-                # Вычисляем перекрытие по осям X и Y
-                overlap_x = min(player.rect.right - obj.left, obj.right - player.rect.left)
-                overlap_y = min(player.rect.bottom - obj.top, obj.bottom - player.rect.top)
+            if temp_rect.colliderect(obj):
+                player_center = (temp_rect.centerx, temp_rect.centery)
+                obj_center = (obj.centerx, obj.centery)
 
-                # Определяем, какая ось имеет меньшее перекрытие
-                if overlap_x < overlap_y:
-                    # Горизонтальная коррекция
-                    if player.velocity_x > 0:  # Движение вправо
-                        player.rect.right = obj.left
-                        player.x = player.rect.x
+                dx = player_center[0] - obj_center[0]
+                dy = player_center[1] - obj_center[1]
+
+                overlap_x = (temp_rect.width / 2) + (obj.width / 2) - abs(dx)
+                overlap_y = (temp_rect.height / 2) + (obj.height / 2) - abs(dy)
+
+                if overlap_x > 0 and overlap_y > 0:
+                    if overlap_x < overlap_y:
+                        if dx > 0:
+                            player.x += overlap_x
+                        else:
+                            player.x -= overlap_x
                         player.velocity_x = 0
                         horizontal_collision = True
-                    elif player.velocity_x < 0:  # Движение влево
-                        player.rect.left = obj.right
-                        player.x = player.rect.x
-                        player.velocity_x = 0
-                        horizontal_collision = True
-                else:
-                    # Вертикальная коррекция
-                    if player.velocity_y > 0:  # Падение на объект
-                        player.rect.bottom = obj.top
-                        player.y = player.rect.y
-                        player.on_ground = True
-                        player.velocity_y = 0
-                        vertical_collision = True
-                        if player.state == "jump":
-                            player.change_state("idle")
-                    elif player.velocity_y < 0:  # Прыжок вверх
-                        player.rect.top = obj.bottom
-                        player.y = player.rect.y
-                        player.velocity_y = 0
+                    else:
+                        if dy > 0:
+                            player.y += overlap_y
+                            player.velocity_y = 0
+                            player.on_ground = True
+                            if player.state == "jump":
+                                player.change_state("idle")
+                        else:
+                            player.y -= overlap_y
+                            player.velocity_y = 0
                         vertical_collision = True
 
-        # Если произошла горизонтальная коллизия, но не вертикальная, добавляем эффект скольжения
-        if horizontal_collision and not vertical_collision:
-            player.velocity_y += player.gravity  # Продолжаем падение вдоль стены
-
-        # Обновляем прямоугольник коллизии после всех изменений
         player.rect.topleft = (player.x, player.y)
 
     def check_wall_collision(self, player):
@@ -245,7 +237,6 @@ class CollisionLevel2:
         self.check_collisions(player, self.boxes)
 
     def draw_collision_debug(self, screen):
-        # Отрисовка отладочных прямоугольников
         for ladder in self.ladders:
             pygame.draw.rect(screen, (255, 0, 0), ladder, 6)  # Красный цвет для лестниц
         for wall in self.walls:

@@ -7,8 +7,8 @@
         0,
         0
     ],
-    "MUSIC_VOLUME": 0.03,
-    "SFX_VOLUME": 0.01,
+    "MUSIC_VOLUME": 0.025,
+    "SFX_VOLUME": 0.025,
     "FULLSCREEN": false,
     "VSYNC": true,
     "PARTICLES": true,

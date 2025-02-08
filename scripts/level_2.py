@@ -38,30 +38,25 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     """Основная функция второго уровня."""
     # Загрузка звуков
     player_sounds = load_sounds(SFX_VOLUME)
-
     # Создание игрока
-    player = Player(100, 600, player_sounds)
+    player = Player(128, 1302, player_sounds, 2)
     health = Health(max_health=3, x=10, y=10, player=player)
-
     # Группы спрайтов
     all_sprites = pygame.sprite.Group()
     all_sprites.add(player)
-
     # Добавление врагов
     bats = pygame.sprite.Group()
-    bat = Bat(400, 500, 700, 500)
-    bats.add(bat)
-    all_sprites.add(bat)
 
     # Коллизии
     collision = CollisionLevel2()
-
 
     # Переменные для игрового цикла
     clock = pygame.time.Clock()
     running = True
     is_paused = False
-    esc_pressed = False
+
+    # Создаем объект PauseMenu один раз
+    pause_menu = PauseMenu(screen)
 
     while running:
         for event in pygame.event.get():
@@ -69,16 +64,13 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
                 running = False
 
             # Обработка паузы
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_ESCAPE]:
-                if not esc_pressed:
-                    is_paused = not is_paused
-                    esc_pressed = True
-            else:
-                esc_pressed = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    is_paused = not is_paused  # Переключаем паузу
+                    pause_menu.draw()
+
 
             if is_paused:
-                pause_menu = PauseMenu(screen)
                 result = pause_menu.handle_events(event)
                 if result == "quit":
                     exit_to_main_menu()
@@ -86,9 +78,12 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
                     is_paused = False
                 continue
 
+        if is_paused:
+            # Если игра на паузе, пропускаем основной игровой цикл
+            continue
+
         # Отрисовка фона
         draw_background(screen)
-
         # Управление игроком
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -97,10 +92,8 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
             player.move_right()
         else:
             player.stop()
-
         if keys[pygame.K_SPACE]:
             player.jump()
-
         if keys[pygame.K_f]:
             player.attack(bats)
 
@@ -139,4 +132,3 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         clock.tick(60)
 
     pygame.quit()
-
