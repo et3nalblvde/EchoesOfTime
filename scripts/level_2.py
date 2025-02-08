@@ -1,0 +1,158 @@
+import pygame
+import os
+from game_over import GameOverScreen
+from player import Player
+from health import Health
+from collision import CollisionLevel1
+from pause_menu import PauseMenu
+from bat import Bat
+from settings import load_sounds, load_settings
+
+# Константы
+WHITE = (255, 255, 255)
+
+# Загрузка настроек
+settings = load_settings()
+MUSIC_VOLUME = settings["MUSIC_VOLUME"]
+SFX_VOLUME = settings["SFX_VOLUME"]
+
+# Инициализация Pygame
+pygame.mixer.music.set_volume(MUSIC_VOLUME)
+
+# Путь к изображению фона второго уровня
+base_folder = os.path.dirname(os.path.abspath(__file__))
+level_2_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_2.png')
+level_2_image = pygame.image.load(level_2_image_path)
+
+def scale_background(screen):
+    """Масштабирование фона под размер экрана."""
+    screen_width, screen_height = screen.get_size()
+    return pygame.transform.scale(level_2_image, (screen_width, screen_height))
+
+def draw_background(screen):
+    """Отрисовка фона."""
+    scaled_background = scale_background(screen).convert()
+    screen.blit(scaled_background, (0, 0))
+
+def start_level_2(screen, restart_main_menu, exit_to_main_menu):
+    """Основная функция второго уровня."""
+    # Загрузка звуков
+    player_sounds = load_sounds(SFX_VOLUME)
+
+    # Создание игрока
+    player = Player(100, 600, player_sounds)
+    health = Health(max_health=3, x=10, y=10, player=player)
+
+    # Группы спрайтов
+    all_sprites = pygame.sprite.Group()
+    all_sprites.add(player)
+
+    # Добавление врагов
+    bats = pygame.sprite.Group()
+    bat = Bat(400, 500, 700, 500)
+    bats.add(bat)
+    all_sprites.add(bat)
+
+    # Коллизии
+    collision = CollisionLevel2()
+    collision.set_collision_objects(
+        ladders=[],
+        walls=[pygame.Rect(0, 0, 2, 1500), pygame.Rect(2559, 0, 2, 1500)],
+        platforms=[
+            pygame.Rect(1676, 973, 524, 90),
+            pygame.Rect(2300, 973, 524, 90),
+            pygame.Rect(1660, 1161, 524, 90),
+            pygame.Rect(1121, 959, 524, 90),
+            pygame.Rect(407, 957, 524, 90),
+            pygame.Rect(2277, 298, 524, 90),
+            pygame.Rect(1546, 87, 524, 90),
+            pygame.Rect(1010, 316, 524, 90),
+            pygame.Rect(434, 439, 504, 90),
+            pygame.Rect(0, 157, 484, 90),
+            pygame.Rect(0, 1379, 2560, 50)
+        ],
+        boxes=[])
+
+    # Переменные для игрового цикла
+    clock = pygame.time.Clock()
+    running = True
+    is_paused = False
+    esc_pressed = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            # Обработка паузы
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_ESCAPE]:
+                if not esc_pressed:
+                    is_paused = not is_paused
+                    esc_pressed = True
+            else:
+                esc_pressed = False
+
+            if is_paused:
+                pause_menu = PauseMenu(screen)
+                result = pause_menu.handle_events(event)
+                if result == "quit":
+                    exit_to_main_menu()
+                if result == "continue":
+                    is_paused = False
+                continue
+
+        # Отрисовка фона
+        draw_background(screen)
+
+        # Управление игроком
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            player.move_left()
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            player.move_right()
+        else:
+            player.stop()
+
+        if keys[pygame.K_SPACE]:
+            player.jump()
+
+        if keys[pygame.K_f]:
+            player.attack(bats)
+
+        # Проверка здоровья игрока
+        if not health.is_alive():
+            game_over_screen = GameOverScreen(
+                screen,
+                lambda: start_level_2(screen, restart_main_menu, exit_to_main_menu),
+                exit_to_main_menu
+            )
+            game_over_screen_loop(game_over_screen)
+            running = False
+
+        # Обновление коллизий
+        collision.check_ladder_collision(player)
+        collision.check_platform_collision(player)
+        collision.check_wall_collision(player)
+        collision.check_box_collision(player)
+        collision.draw_collision_debug(screen)
+
+        # Обновление спрайтов
+        all_sprites.update(clock.get_time() / 1000)
+        all_sprites.draw(screen)
+
+        # Отрисовка здоровья
+        health.draw(screen)
+
+        # Отладочная информация (опционально)
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        font = pygame.font.Font(None, 36)
+        coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
+        screen.blit(coordinates_text, (10, 10))
+
+        # Обновление экрана
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+

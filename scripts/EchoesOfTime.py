@@ -2,6 +2,7 @@ import pygame
 from scripts.settings import load_settings
 from main_menu import main_menu
 from settings import *
+
 settings = load_settings()
 pygame.init()
 SCREEN_WIDTH = settings["SCREEN_WIDTH"]
@@ -17,6 +18,7 @@ pygame.display.set_caption("Echoes Of time")
 
 def main():
     main_menu(screen)
+
 
 
 if __name__ == "__main__":

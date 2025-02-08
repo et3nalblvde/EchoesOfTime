@@ -123,12 +123,7 @@ class Player(pygame.sprite.Sprite):
                     self.velocity_y = 0
                 self.handle_collisions()
 
-            if self.y >= 1228:
-                self.y = 1228
-                self.velocity_y = 0
-                self.on_ground = True
-            else:
-                self.on_ground = False
+
 
             self.x += self.velocity_x
             self.rect.topleft = (self.x, self.y)

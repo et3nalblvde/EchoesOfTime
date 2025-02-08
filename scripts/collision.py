@@ -1,7 +1,7 @@
 import pygame
 
 class CollisionLevel1:
-    def __init__(self):
+    def __init__(self, ):
         # Определение лестниц, стен, платформ и коробок
         self.ladders = [
             pygame.Rect(514, 1059, 50, 230),
@@ -40,14 +40,20 @@ class CollisionLevel1:
         ]
 
     def check_collisions(self, player, objects):
-        # Сохраняем текущую позицию игрока
-        original_x, original_y = player.x, player.y
-
-        # Обновляем позицию игрока
+        """
+        Общая функция для проверки коллизий.
+        :param player: Объект игрока.
+        :param objects: Список объектов для проверки коллизий.
+        """
+        # Применяем перемещение игрока
         player.on_ground = True
         player.x += player.velocity_x
         player.y += player.velocity_y
         player.rect.topleft = (player.x, player.y)
+
+        # Флаги для обработки коллизий
+        horizontal_collision = False
+        vertical_collision = False
 
         for obj in objects:
             if player.rect.colliderect(obj):
@@ -55,25 +61,38 @@ class CollisionLevel1:
                 overlap_x = min(player.rect.right - obj.left, obj.right - player.rect.left)
                 overlap_y = min(player.rect.bottom - obj.top, obj.bottom - player.rect.top)
 
+                # Определяем, какая ось имеет меньшее перекрытие
                 if overlap_x < overlap_y:
                     # Горизонтальная коррекция
                     if player.velocity_x > 0:  # Движение вправо
                         player.rect.right = obj.left
+                        player.x = player.rect.x
+                        player.velocity_x = 0
+                        horizontal_collision = True
                     elif player.velocity_x < 0:  # Движение влево
                         player.rect.left = obj.right
-                    player.x = player.rect.x
-                    player.velocity_x = 0
+                        player.x = player.rect.x
+                        player.velocity_x = 0
+                        horizontal_collision = True
                 else:
                     # Вертикальная коррекция
                     if player.velocity_y > 0:  # Падение на объект
                         player.rect.bottom = obj.top
+                        player.y = player.rect.y
                         player.on_ground = True
+                        player.velocity_y = 0
+                        vertical_collision = True
                         if player.state == "jump":
                             player.change_state("idle")
                     elif player.velocity_y < 0:  # Прыжок вверх
                         player.rect.top = obj.bottom
-                    player.y = player.rect.y
-                    player.velocity_y = 0
+                        player.y = player.rect.y
+                        player.velocity_y = 0
+                        vertical_collision = True
+
+        # Если произошла горизонтальная коллизия, но не вертикальная, добавляем эффект скольжения
+        if horizontal_collision and not vertical_collision:
+            player.velocity_y += player.gravity  # Продолжаем падение вдоль стены
 
         # Обновляем прямоугольник коллизии после всех изменений
         player.rect.topleft = (player.x, player.y)

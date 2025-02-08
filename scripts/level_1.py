@@ -122,6 +122,7 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     clock = pygame.time.Clock()
     collision = CollisionLevel1()
 
+
     running = True
     player_dead = False
     death_animation_playing = False
@@ -290,6 +291,9 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
         if door.is_open and door.rect.colliderect(player.rect):
             complete_level = True
             update_level_status("level_1", "complete")
+            all_sprites.empty()
+            collision.platforms.clear()
+            collision.walls.clear()
             congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu)
             congratulations_screen.congratulations_screen()
             running = False
