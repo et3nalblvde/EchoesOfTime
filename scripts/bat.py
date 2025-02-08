@@ -193,7 +193,7 @@ class Bat(pygame.sprite.Sprite):
             distance = bat_center.distance_to(player_center)
 
             if distance <= self.attack_radius:
-                player.take_damage(1)  # Наносим урон игроку
+                player.take_damage(1)
                 print("Bat attacks the player!")
-                self.change_state("attack")  # Меняем состояние на "атака"
+                self.change_state("attack")
                 self.last_attack_time = current_time

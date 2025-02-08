@@ -70,8 +70,8 @@ class Player(pygame.sprite.Sprite):
             "death": 10,
             "attack": 10
         }
-        self.health = 3  # Здоровье игрока
-        self.last_hit_time = 0  # Время последнего удара
+        self.health = 3
+        self.last_hit_time = 0
         self.hit_delay = 1000
 
         if levelnum == 1:
@@ -111,7 +111,6 @@ class Player(pygame.sprite.Sprite):
                     self.rect.topleft = (self.x, self.y)
                     self.animation_counter = 0
 
-            # Обновление позиции игрока
             if self.on_ladder:
                 self.velocity_y = 0
                 keys = pygame.key.get_pressed()

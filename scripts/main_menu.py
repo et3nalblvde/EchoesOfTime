@@ -204,7 +204,7 @@ def handle_quit_button(event):
 
 def get_last_completed_level():
     settings = load_settings()
-    levels = ["level_1", "level_2"]  # Добавьте больше уровней, если нужно
+    levels = ["level_1", "level_2"]
     last_completed = None
     for level in levels:
         if level in settings and settings[level] == "complete":
@@ -222,7 +222,6 @@ def handle_menu_events(event, settings_menu):
 
     running = True
 
-    # Обработка кнопки "Продолжить игру"
     if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
         last_completed_level = get_last_completed_level()
         if last_completed_level == "level_1":
