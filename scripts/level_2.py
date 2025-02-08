@@ -3,7 +3,7 @@ import os
 from game_over import GameOverScreen
 from player import Player
 from health import Health
-from collision import CollisionLevel1
+from collision import CollisionLevel1, CollisionLevel2
 from pause_menu import PauseMenu
 from bat import Bat
 from settings import load_sounds, load_settings
@@ -55,23 +55,7 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
 
     # Коллизии
     collision = CollisionLevel2()
-    collision.set_collision_objects(
-        ladders=[],
-        walls=[pygame.Rect(0, 0, 2, 1500), pygame.Rect(2559, 0, 2, 1500)],
-        platforms=[
-            pygame.Rect(1676, 973, 524, 90),
-            pygame.Rect(2300, 973, 524, 90),
-            pygame.Rect(1660, 1161, 524, 90),
-            pygame.Rect(1121, 959, 524, 90),
-            pygame.Rect(407, 957, 524, 90),
-            pygame.Rect(2277, 298, 524, 90),
-            pygame.Rect(1546, 87, 524, 90),
-            pygame.Rect(1010, 316, 524, 90),
-            pygame.Rect(434, 439, 504, 90),
-            pygame.Rect(0, 157, 484, 90),
-            pygame.Rect(0, 1379, 2560, 50)
-        ],
-        boxes=[])
+
 
     # Переменные для игрового цикла
     clock = pygame.time.Clock()
