@@ -8,6 +8,7 @@ from pause_menu import PauseMenu
 from bat import Bat
 from settings import load_sounds, load_settings
 from shadow import Shadow
+from trap import NeedleTrap, SpittingHead  # Импортируем SpittingHead
 
 WHITE = (255, 255, 255)
 
@@ -38,11 +39,21 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     shadow = Shadow(1576, 832, 2)
     health = Health(max_health=3, x=10, y=10, player=player)
     all_sprites = pygame.sprite.Group()
+    spitting_heads = pygame.sprite.Group()  # Новая группа для SpittingHead
     all_sprites.add(player)
     all_sprites.add(shadow)
+
+    # Создаем экземпляры NeedleTrap и SpittingHead
+    needle1 = NeedleTrap(724, 906, 64, 64)
+    needle2 = NeedleTrap(747, 747, 64, 64)
+    spitting_head1 = SpittingHead(2516, 904, 64, 64)  # Позиция SpittingHead на уровне
+    spitting_head2 = SpittingHead(2552, 907, 64, 64)  # Позиция SpittingHead на уровне
+
+    # Добавляем их в группу спрайтов
+    all_sprites.add(needle1, needle2)
+    spitting_heads.add(spitting_head1, spitting_head2)  # Добавляем в новую группу
+
     bats = pygame.sprite.Group()
-
-
     bat1 = Bat(1553, 26, 2015, 26)
     bat2 = Bat(439, 889, 1172, 885)
     bats.add(bat1, bat2)
@@ -58,6 +69,9 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     pause_menu = PauseMenu(screen)
 
     while running:
+        dt = clock.get_time() / 1000  # delta time
+        current_time = pygame.time.get_ticks()  # Текущее время
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -114,8 +128,18 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         collision.check_box_collision(shadow)
         collision.draw_collision_debug(screen)
 
-        all_sprites.update(clock.get_time() / 1000)
+        # Обновление анимации иголок
+        needle1.update(dt)
+        needle2.update(dt)
+        all_sprites.update(dt)
         all_sprites.draw(screen)
+
+        # Обновление и рисование SpittingHead отдельно
+        spitting_heads.update(dt, current_time)
+        spitting_heads.draw(screen)
+
+        for spitting_head in spitting_heads:
+            spitting_head.draw_fireballs(screen)
 
         health.draw(screen)
 
