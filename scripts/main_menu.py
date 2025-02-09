@@ -6,7 +6,6 @@ from level_1 import start_level_1
 from level_2 import start_level_2
 from pause_menu import PauseMenu
 import json
-from save_game import load_game_state
 pygame.init()
 
 settings = load_settings()
@@ -64,10 +63,10 @@ def update_button_positions():
     center_y = SCREEN_HEIGHT // 2
     button_spacing = button_height - 150
 
-    # Загрузка настроек
+
     settings = load_settings()
 
-    # Проверка наличия завершенных уровней
+
     has_completed_levels = any(
         level in settings and settings[level] == "complete"
         for level in ["level_1", "level_2"]
@@ -175,13 +174,28 @@ def handle_continue_button(event):
 
 def handle_start_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
-        
-        update_level_2_status()
+
+        settings = load_settings()
+        settings["level_1"] = False
+
+
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+        settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+        with open(settings_path, 'w') as f:
+            json.dump(settings, f, indent=4)
+
+
+        global continue_button
+        continue_button = None
+
 
         pygame.mixer.music.fadeout(4000)
         start_level_1(screen, restart_main_menu, exit_to_main_menu)
         return False
     return True
+
+
 
 def handle_continue_button(event):
     if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
@@ -212,30 +226,33 @@ def get_last_completed_level():
     return last_completed
 
 def handle_menu_events(event, settings_menu):
+    running = True  # Инициализация переменной running
+
     if event.type == pygame.QUIT:
         return False, settings_menu
 
     if settings_menu:
+        # Если открыты настройки, блокируем взаимодействие с остальными кнопками
         if not settings_menu.handle_events(event):
             settings_menu = None
             return True, settings_menu
+    else:
+        if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
+            last_completed_level = get_last_completed_level()
+            if last_completed_level == "level_1":
+                start_level_2(screen, restart_main_menu, exit_to_main_menu)
+            elif last_completed_level == "level_2":
+                print("All levels are complete!")
+            return False, settings_menu
 
-    running = True
-
-    if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
-        last_completed_level = get_last_completed_level()
-        if last_completed_level == "level_1":
-            start_level_2(screen, restart_main_menu, exit_to_main_menu)
-        elif last_completed_level == "level_2":
-            print("All levels are complete!")
-        return False, settings_menu
-
-    running = handle_start_button(event) and running
-    running = handle_continue_button(event) and running
-    settings_menu, running = handle_settings_button(event, settings_menu)
-    running = handle_quit_button(event) and running
+        running = handle_start_button(event) and running
+        running = handle_continue_button(event) and running
+        settings_menu, running = handle_settings_button(event, settings_menu)
+        running = handle_quit_button(event) and running
 
     return running, settings_menu
+
+
 
 
 

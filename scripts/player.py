@@ -33,6 +33,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, sounds, levelnum=None):
         super().__init__()
         self.attacking = False
+        self.can_jump = True
         self.sounds = sounds
         self.x = x
         self.y = y
@@ -49,7 +50,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity_y = 0
         self.speed = 7
         self.gravity = 0.5
-        self.jump_strength = -12
+        self.jump_strength = -17
         self.on_ground = False
         self.on_ladder = False
         self.animation_counter = 0
@@ -57,7 +58,7 @@ class Player(pygame.sprite.Sprite):
         self.health = 3
         self.last_direction = None
         self.last_jump_time = 0
-        self.jump_delay = 500
+        self.jump_delay = 1000
         self.collision_type = 'none'
         self.on_box = False
         self.last_attack_time = 0
@@ -98,8 +99,8 @@ class Player(pygame.sprite.Sprite):
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
-                    self.attacking = False  # Сбрасываем флаг атаки
-                    self.change_state(self.previous_state)  # Возвращаемся к предыдущему состоянию
+                    self.attacking = False
+                    self.change_state(self.previous_state)
                 else:
                     self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
                     self.image = self.animations[self.state][self.frame_index]
@@ -211,7 +212,7 @@ class Player(pygame.sprite.Sprite):
         if new_state in self.animations and new_state != self.state:
             if new_state == "attack":
                 self.attacking = True
-                self.previous_state = self.state  # Сохраняем предыдущее состояние
+                self.previous_state = self.state
                 self.frame_index = 0
                 self.state = new_state
                 self.image = self.animations[self.state][self.frame_index]
@@ -263,6 +264,7 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         current_time = pygame.time.get_ticks()
+
         if current_time - self.last_jump_time >= self.jump_delay and (
                 self.on_ground or self.on_platform or self.on_ladder
         ):
@@ -282,7 +284,7 @@ class Player(pygame.sprite.Sprite):
             self.change_state("attack")
             print('attack')
             self.sounds["attack"].play()
-            self.attacking = True  # Устанавливаем флаг атаки
+            self.attacking = True
             self.last_attack_time = current_time
 
             for bat in bats:

@@ -24,7 +24,7 @@ def load_sounds(volume):
         "attack": pygame.mixer.Sound(os.path.join(sound_folder, 'attack.mp3')),
         "walk": pygame.mixer.Sound(os.path.join(sound_folder, 'steps.ogg'))
     }
-    
+
     for sound in sounds.values():
         sound.set_volume(volume)
     return sounds
@@ -96,7 +96,7 @@ level_2=settings["Level_2"]
 pygame.mixer.music.load(MUSIC_FILE)
 pygame.mixer.music.set_volume(MUSIC_VOLUME)
 pygame.mixer.music.play(-1)
-player_sounds = load_sounds(SFX_VOLUME)  
+player_sounds = load_sounds(SFX_VOLUME)
 
 class SettingsMenu:
     def __init__(self, screen, settings):
@@ -119,19 +119,17 @@ class SettingsMenu:
         self.update_resolution()
         self.is_dragging_slider = False
         self.dragged_slider = None
-        self.sound_effects = load_sounds(settings["SFX_VOLUME"])  
-
-    
+        self.sound_effects = load_sounds(settings["SFX_VOLUME"])
 
     def update_resolution(self):
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_width, self.screen_height = self.screen.get_size()
         self.back_button = pygame.Rect(
             self.screen_width * 0.5 - self.back_button_width * 0.5,
-            self.screen_height - self.back_button_height - 20,
+            self.screen_height * 0.85 - self.back_button_height + 20,  # Adjusted back button position by 20px
             self.back_button_width, self.back_button_height
         )
-        self.slider_x_position = self.screen_width * 0.5 - self.slider_width * 0.5
+        self.slider_x_position = self.screen_width * 0.5 - self.slider_width * 0.5 + 50  # Move sliders to the right
         self.font_size = int(self.base_font_size * (self.screen_width / 1024))
         self.font = pygame.font.Font(FONT_PATH, self.font_size)
 
@@ -147,39 +145,52 @@ class SettingsMenu:
         title_text = self.font.render("Настройки", True, (255, 255, 255))
         self.screen.blit(title_text, (self.screen_width * 0.5 - title_text.get_width() * 0.5, self.screen_height * 0.1))
 
+        # Отображаем координаты мыши в верхнем левом углу
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_coords_text = self.font.render(f"Мышь: x={mouse_x}, y={mouse_y}", True, (255, 255, 255))
+        self.screen.blit(mouse_coords_text, (10, 10))  # Отображаем в верхнем левом углу
+
         for i, option in enumerate(self.options):
             color = (255, 255, 0) if self.selected_option == i else (255, 255, 255)
-            y_offset = self.screen_height * 0.2 + i * (self.font_size * 1.5) - 30
+            y_offset = self.screen_height * 0.25 + i * (self.font_size * 2)  # Increased distance between options
             if option["type"] == "slider":
                 slider_value = self.settings[option["key"]]
                 value_text = f"{int(slider_value * 100)}%"
                 option_text = self.font.render(f"{option['name']}: {value_text}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-                pygame.draw.rect(self.screen, (255, 255, 255),
-                                 (self.slider_x_position, y_offset + self.font_size - 80, self.slider_width,
-                                  self.slider_height))
+                # Новая позиция слайдера — сдвинут ниже и вправо
+                slider_y_offset = y_offset + 10  # сдвиг слайдера вниз
+                slider_rect = pygame.Rect(self.slider_x_position + 70, slider_y_offset, self.slider_width,
+                                          self.slider_height)
+
+                # Отладочный прямоугольник для слайдера
+                pygame.draw.rect(self.screen, (255, 0, 0), slider_rect, 2)  # Красный прямоугольник
                 pygame.draw.rect(self.screen, (255, 255, 0),
-                                 (self.slider_x_position + slider_value * self.slider_width - 5,
-                                  y_offset + self.font_size - 80, 10, self.slider_height))
+                                 (self.slider_x_position + 100 + slider_value * self.slider_width - 5,
+                                  slider_y_offset, 10, self.slider_height))  # Позиция слайдера
 
             elif option["type"] == "select":
                 option_text = self.font.render(f"{option['name']}: {self.settings[option['key']]}", True, color)
                 self.screen.blit(option_text, (self.screen_width * 0.1, y_offset))
 
-        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button, 2)
-        back_text = self.font.render("Назад", True, (0, 0, 0))
+        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button, 2)  # Отладочный прямоугольник для кнопки "Назад"
+        back_text = self.font.render("Назад", True, (255, 255, 255))
         self.screen.blit(back_text, (
-            self.screen_width * 0.5 - back_text.get_width() * 0.5, self.screen_height * 0.9))
+            self.screen_width * 0.5 - back_text.get_width() * 0.5, self.screen_height * 0.85 + 60))  # Adjusted position
+
 
     def handle_events(self, event):
+        if not pygame.display.get_active():# Проверяем, что окно активно
+            return True  # Игнорируем все события, если окно не активно
+
         if event.type == pygame.MOUSEMOTION:
             mouse_x, mouse_y = event.pos
             self.selected_option = None
             for i, option in enumerate(self.options):
-                y_offset = self.screen_height * 0.2 + i * (self.font_size * 1.5) - 30
+                y_offset = self.screen_height * 0.25 + i * (self.font_size * 2) + 50  # Adjusted y_offset
                 if option["type"] == "slider":
-                    slider_rect = pygame.Rect(self.slider_x_position, y_offset + self.font_size - 80, self.slider_width,
+                    slider_rect = pygame.Rect(self.slider_x_position + 70, y_offset + 10, self.slider_width,
                                               self.slider_height)
                     if slider_rect.collidepoint(mouse_x, mouse_y):
                         self.selected_option = i
@@ -189,10 +200,18 @@ class SettingsMenu:
                     if text_rect.collidepoint(mouse_x, mouse_y):
                         self.selected_option = i
                         break
+                # Обработка кнопки "Назад"
+                if self.back_button.collidepoint(mouse_x, mouse_y):
+                    self.selected_option = 'back'
+                    break
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
             if self.back_button.collidepoint(event.pos):
+                self.save_settings()
+                return False  # Возвращаем False, чтобы выйти из меню настроек
+
+            if self.selected_option == 'back':  # Если выбрана кнопка "Назад"
                 self.save_settings()
                 return False
 
@@ -249,3 +268,5 @@ class SettingsMenu:
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as file:
             json.dump(self.settings, file, indent=4)
+
+

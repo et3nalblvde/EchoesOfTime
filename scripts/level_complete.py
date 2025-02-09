@@ -118,13 +118,13 @@ class CongratulationsScreen:
                     print("Starting level 2...")
                     pygame.init()
                     self.running = False
-                    start_level_2(self.screen, self.exit_to_main_menu, self.exit_to_main_menu)  # Запуск второго уровня
+                    start_level_2(self.screen, self.exit_to_main_menu, self.exit_to_main_menu)
                 elif action == "main_menu":
                     print("Returning to main menu...")
                     self.running = False
                     self.exit_to_main_menu()
 
-            # Отрисовка фона и кнопок
+
             if frame_counter >= frame_delay:
                 current_frame = (current_frame + 1) % self.frame_count
                 frame_counter = 0

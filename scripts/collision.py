@@ -2,7 +2,6 @@ import pygame
 
 class CollisionLevel1:
     def __init__(self, ):
-        # Определение лестниц, стен, платформ и коробок
         self.ladders = [
             pygame.Rect(514, 1059, 50, 230),
             pygame.Rect(2423, 431, 50, 250),
@@ -114,13 +113,13 @@ class CollisionLevel1:
     def draw_collision_debug(self, screen):
 
         for ladder in self.ladders:
-            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)  # Красный цвет для лестниц
+            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)
         for wall in self.walls:
-            pygame.draw.rect(screen, (0, 0, 0), wall, 6)  # Черный цвет для стен
+            pygame.draw.rect(screen, (0, 0, 0), wall, 6)
         for platform in self.platforms:
-            pygame.draw.rect(screen, (0, 255, 0), platform, 6)  # Зеленый цвет для платформ
+            pygame.draw.rect(screen, (0, 255, 0), platform, 6)
         for box in self.boxes:
-            pygame.draw.rect(screen, (0, 0, 255), box, 6)  # Синий цвет для коробок
+            pygame.draw.rect(screen, (0, 0, 255), box, 6)
 
 
 import pygame
@@ -238,10 +237,10 @@ class CollisionLevel2:
 
     def draw_collision_debug(self, screen):
         for ladder in self.ladders:
-            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)  # Красный цвет для лестниц
+            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)
         for wall in self.walls:
-            pygame.draw.rect(screen, (0, 0, 0), wall, 6)  # Черный цвет для стен
+            pygame.draw.rect(screen, (0, 0, 0), wall, 6)
         for platform in self.platforms:
-            pygame.draw.rect(screen, (0, 255, 0), platform, 6)  # Зеленый цвет для платформ
+            pygame.draw.rect(screen, (0, 255, 0), platform, 6)
         for box in self.boxes:
-            pygame.draw.rect(screen, (0, 0, 255), box, 6)  # Синий цвет для коробок
+            pygame.draw.rect(screen, (0, 0, 255), box, 6)
