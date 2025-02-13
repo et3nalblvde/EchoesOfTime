@@ -91,8 +91,8 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     player_sounds = load_sounds(SFX_VOLUME)
 
-    player = Player(58, 1226, player_sounds,1)
-    shadow = Shadow(80, 1226,1)
+    player = Player(2010, 109, player_sounds,1)
+    shadow = Shadow(1577, 872,1)
     health = Health(max_health=3, x=10, y=10, player=player)
 
     door_x, door_y = 2398, 65
@@ -290,7 +290,7 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
 
         if door.is_open and door.rect.colliderect(player.rect):
             complete_level = True
-            update_level_status("level_1", "complete")
+            update_level_status("level_1", "true")
             all_sprites.empty()
             collision.platforms.clear()
             collision.walls.clear()

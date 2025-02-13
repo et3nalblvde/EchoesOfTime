@@ -46,7 +46,7 @@ class Shadow(pygame.sprite.Sprite):
         self.velocity_y = 0
         self.speed = 7
         self.gravity = 0.5
-        self.jump_strength = -12
+        self.jump_strength = -17
         self.on_ground = False
         self.on_ladder = False
 

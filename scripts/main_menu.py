@@ -7,6 +7,7 @@ from level_2 import start_level_2
 from level_3 import start_level_3
 from pause_menu import PauseMenu
 import json
+
 pygame.init()
 
 settings = load_settings()
@@ -42,16 +43,13 @@ frame_count = len(background_frames)
 def update_level_2_status():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-    settings_path  = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+    settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
 
-    
     with open(settings_path, 'r') as f:
         settings_data = json.load(f)
 
-    
-    settings_data["Level_2"] = False
+    settings_data["Level_2"] = True
 
-    
     with open(settings_path, 'w') as f:
         json.dump(settings_data, f, indent=4)
 
@@ -64,17 +62,16 @@ def update_button_positions():
     center_y = SCREEN_HEIGHT // 2
     button_spacing = button_height - 150
 
-
     settings = load_settings()
 
-
+    # Проверяем, завершены ли уровни 1 и 2
     has_completed_levels = any(
-        level in settings and settings[level] == "complete"
-        for level in ["level_1", "level_2, level_3"]
+        level in settings and settings[level] is True
+        for level in ["level_1", "level_2"]
     )
 
     if has_completed_levels:
-        buttons_count = 4
+        buttons_count = 4  # Добавляем кнопку продолжения игры, если хотя бы один уровень завершён
     else:
         buttons_count = 3
 
@@ -119,6 +116,17 @@ def update_button_positions():
             vertical_shift + 2 * (button_height + button_spacing),
             button_width, button_height
         )
+def load_game_state():
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+    settings_path = os.path.join(PROJECT_DIR, 'save', 'game_state.json')
+
+    try:
+        with open(settings_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+
 
 
 def draw_gradient_background(surface):
@@ -159,6 +167,7 @@ def draw_main_menu(screen, current_frame):
     draw_button(screen, settings_button, "Настройки", is_settings_hovered)
     draw_button(screen, quit_button, "Выйти в меню", is_quit_hovered)
 
+
 def handle_continue_button(event):
     if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
         saved_state = load_game_state()
@@ -175,12 +184,13 @@ def handle_continue_button(event):
         return False
     return True
 
+
+
+
 def handle_start_button(event):
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
-
         settings = load_settings()
         settings["level_1"] = False
-
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
@@ -188,23 +198,31 @@ def handle_start_button(event):
         with open(settings_path, 'w') as f:
             json.dump(settings, f, indent=4)
 
-
         global continue_button
         continue_button = None
 
-
         pygame.mixer.music.fadeout(4000)
-        start_level_3(screen, restart_main_menu, exit_to_main_menu)
+        start_level_1(screen, restart_main_menu, exit_to_main_menu)
         return False
     return True
 
 
 
-def handle_continue_button(event):
-    if continue_button and event.type == pygame.MOUSEBUTTONDOWN and continue_button.collidepoint(event.pos):
-        pygame.mixer.music.fadeout(4000)
-        return False
-    return True
+
+def update_level_2_status():
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+    settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+
+    with open(settings_path, 'r') as f:
+        settings_data = json.load(f)
+
+    settings_data["level_2"] = True  # Сохраняем завершение второго уровня
+    settings_data["level_3"] = False  # Блокируем 3-й уровень
+
+    with open(settings_path, 'w') as f:
+        json.dump(settings_data, f, indent=4)
+
 
 
 def handle_settings_button(event, settings_menu):
@@ -219,14 +237,16 @@ def handle_quit_button(event):
         return False
     return True
 
+
 def get_last_completed_level():
     settings = load_settings()
-    levels = ["level_1", "level_2"]
+    levels = ["level_1", "level_2", "level_3"]  # теперь добавляем все три уровня
     last_completed = None
     for level in levels:
-        if level in settings and settings[level] == "complete":
+        if level in settings and settings[level] is True:
             last_completed = level
     return last_completed
+
 
 def handle_menu_events(event, settings_menu):
     running = True  # Инициализация переменной running
@@ -254,9 +274,6 @@ def handle_menu_events(event, settings_menu):
         running = handle_quit_button(event) and running
 
     return running, settings_menu
-
-
-
 
 
 def main_menu(screen):

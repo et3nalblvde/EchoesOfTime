@@ -30,6 +30,7 @@
     "SHADOWS_ENABLED": true,
     "ECHO_DELAY": 2,
     "ECHO_OPACITY": 100,
-    "Level_2": false,
-    "level_1": false
+    "Level_3": false,
+    "Level_2": true,
+    "level_1": true
 }

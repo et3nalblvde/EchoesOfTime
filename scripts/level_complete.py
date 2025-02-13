@@ -96,11 +96,13 @@ class CongratulationsScreen:
         )
 
     def handle_events(self, event):
-        from main_menu import main_menu
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.next_level_button.collidepoint(event.pos):
                 print("Next level button clicked")
-                return "next_level"
+                if self.settings.get("level_2", False):  # Проверяем, завершён ли второй уровень
+                    return "level_3"  # Переходим на третий уровень
+                else:
+                    return "level_2"  # Переходим ко второму уровню (если второй не был завершён)
             elif self.main_menu_button.collidepoint(event.pos):
                 print("Main menu button clicked")
                 return "main_menu"
@@ -115,29 +117,34 @@ class CongratulationsScreen:
         while self.running:
             for event in pygame.event.get():
                 action = self.handle_events(event)
-                if action == "next_level":
+                if action == "level_2":
                     print("Starting level 2...")
                     pygame.init()
                     self.running = False
-                    start_level_2(self.screen, self.exit_to_main_menu, self.exit_to_main_menu)
+                    start_level_3(self.screen, self.exit_to_main_menu, start_level_3)  # Переход на 2 уровень
+                elif action == "level_3":
+                    print("Starting level 3...")
+                    pygame.init()
+                    self.running = False
+                    start_level_3(self.screen, self.exit_to_main_menu)  # Переход на 3 уровень
                 elif action == "main_menu":
                     print("Returning to main menu...")
                     self.running = False
                     self.exit_to_main_menu()
 
+                if frame_counter >= frame_delay:
+                    current_frame = (current_frame + 1) % self.frame_count
+                    frame_counter = 0
+                else:
+                    frame_counter += 1
 
-            if frame_counter >= frame_delay:
-                current_frame = (current_frame + 1) % self.frame_count
-                frame_counter = 0
-            else:
-                frame_counter += 1
+                self.draw_congratulations(self.screen, current_frame)
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                is_next_hovered = self.next_level_button.collidepoint(mouse_x, mouse_y)
+                is_main_menu_hovered = self.main_menu_button.collidepoint(mouse_x, mouse_y)
+                self.draw_button(self.screen, self.next_level_button, "Следующий уровень", is_next_hovered)
+                self.draw_button(self.screen, self.main_menu_button, "Главное меню", is_main_menu_hovered)
 
-            self.draw_congratulations(self.screen, current_frame)
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            is_next_hovered = self.next_level_button.collidepoint(mouse_x, mouse_y)
-            is_main_menu_hovered = self.main_menu_button.collidepoint(mouse_x, mouse_y)
-            self.draw_button(self.screen, self.next_level_button, "Следующий уровень", is_next_hovered)
-            self.draw_button(self.screen, self.main_menu_button, "Главное меню", is_main_menu_hovered)
+                pygame.display.flip()
+                clock.tick(self.FPS)
 
-            pygame.display.flip()
-            clock.tick(self.FPS)
