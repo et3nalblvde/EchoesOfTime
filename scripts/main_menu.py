@@ -4,6 +4,7 @@ from PIL import Image
 from scripts.settings import load_settings, SettingsMenu
 from level_1 import start_level_1
 from level_2 import start_level_2
+from level_3 import start_level_3
 from pause_menu import PauseMenu
 import json
 pygame.init()
@@ -69,7 +70,7 @@ def update_button_positions():
 
     has_completed_levels = any(
         level in settings and settings[level] == "complete"
-        for level in ["level_1", "level_2"]
+        for level in ["level_1", "level_2, level_3"]
     )
 
     if has_completed_levels:
@@ -169,6 +170,8 @@ def handle_continue_button(event):
                 start_level_1(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
             elif level == "level_2":
                 start_level_2(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
+            elif level == "level_3":
+                start_level_3(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
         return False
     return True
 
@@ -191,7 +194,7 @@ def handle_start_button(event):
 
 
         pygame.mixer.music.fadeout(4000)
-        start_level_1(screen, restart_main_menu, exit_to_main_menu)
+        start_level_3(screen, restart_main_menu, exit_to_main_menu)
         return False
     return True
 

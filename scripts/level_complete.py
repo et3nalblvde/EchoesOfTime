@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from scripts.settings import load_settings
 from level_2 import start_level_2
+from level_3 import start_level_3
 pygame.init()
 
 class CongratulationsScreen:

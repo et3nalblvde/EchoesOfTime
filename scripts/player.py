@@ -2,7 +2,7 @@ import pygame
 import os
 import re
 
-from collision import CollisionLevel1, CollisionLevel2
+from collision import CollisionLevel1, CollisionLevel2, CollisionLevel3
 from settings import player_sounds
 
 pygame.mixer.init()
@@ -79,6 +79,8 @@ class Player(pygame.sprite.Sprite):
             self.collision = CollisionLevel1()
         elif levelnum == 2:
             self.collision = CollisionLevel2()
+        elif levelnum == 3:
+            self.collision = CollisionLevel3()
 
     def update_sfx_volume(self, volume):
         for sound in self.sounds.values():

@@ -1,7 +1,7 @@
 import pygame
 import os
 import re
-from collision import CollisionLevel1, CollisionLevel2
+from collision import CollisionLevel1, CollisionLevel2, CollisionLevel3
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'shadows')
 
@@ -66,6 +66,8 @@ class Shadow(pygame.sprite.Sprite):
             self.collision = CollisionLevel1()
         elif levelnum == 2:
             self.collision = CollisionLevel2()
+        elif levelnum == 3:
+            self.collision = CollisionLevel3()
 
     def update(self, delta_time):
         self.animation_counter += 1
