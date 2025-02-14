@@ -147,6 +147,7 @@ class SettingsMenu:
                                                     (self.screen_width, self.screen_height))
         self.screen.blit(background_resized, (0, 0))
 
+        # Заголовок
         title_text = self.font.render("Настройки", True, (255, 255, 255))
         self.screen.blit(title_text, (self.screen_width * 0.5 - title_text.get_width() * 0.5, self.screen_height * 0.1))
 
@@ -158,7 +159,7 @@ class SettingsMenu:
         # Отрисовка слайдеров
         for i, option in enumerate(self.options):
             color = (255, 255, 0) if self.selected_option == i else (255, 255, 255)
-            y_offset = self.screen_height * 0.25 + i * (self.font_size * 2)
+            y_offset = self.screen_height * 0.25 + i * (self.font_size * 2) + 50  # Учитываем смещение
 
             if option["type"] == "slider":
                 slider_value = self.settings[option["key"]]
@@ -168,8 +169,8 @@ class SettingsMenu:
 
                 # Отрисовка слайдера
                 slider_rect = pygame.Rect(
-                    self.slider_x_position + 70,
-                    y_offset + 10,
+                    self.slider_x_position + 70,  # Начало слайдера
+                    y_offset + 10,  # Смещение вниз
                     self.slider_width,
                     self.slider_height
                 )
@@ -196,30 +197,29 @@ class SettingsMenu:
         if not pygame.display.get_active():
             return True  # Игнорируем все события, если окно не активно
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_x, mouse_y = event.pos
+        mouse_x, mouse_y = pygame.mouse.get_pos()
 
+        if event.type == pygame.MOUSEBUTTONDOWN:
             # Проверяем кнопку "Назад"
-            if self.back_button.collidepoint(event.pos):
+            if self.back_button.collidepoint(mouse_x, mouse_y):
                 self.save_settings()
                 return False  # Выход из меню настроек
 
             # Обрабатываем клики по слайдерам
             for i, option in enumerate(self.options):
-                y_offset = self.screen_height * 0.25 + i * (self.font_size * 2)
-
+                y_offset = self.screen_height * 0.25 + i * (self.font_size * 2) + 50  # Учитываем смещение
                 if option["type"] == "slider":
                     slider_rect = pygame.Rect(
-                        self.slider_x_position + 70,
-                        y_offset + 10,
+                        self.slider_x_position + 70,  # Начало слайдера
+                        y_offset + 10,  # Смещение вниз
                         self.slider_width,
                         self.slider_height
                     )
-
                     if slider_rect.collidepoint(mouse_x, mouse_y):
-                        self.adjust_slider(option, mouse_x)
+                        self.is_dragging_slider = True
+                        self.dragged_slider = i  # Запоминаем, какой слайдер тянем
+                        self.adjust_slider(option, mouse_x)  # Немедленно обновляем значение
                         break
-
                 elif option["type"] == "select":
                     text_rect = pygame.Rect(
                         self.screen_width * 0.1,
@@ -227,30 +227,42 @@ class SettingsMenu:
                         400,
                         self.font_size
                     )
-
                     if text_rect.collidepoint(mouse_x, mouse_y):
                         self.adjust_select(option)
                         break
 
+        elif event.type == pygame.MOUSEBUTTONUP:
+            # Прекращаем перетаскивание слайдера
+            self.is_dragging_slider = False
+            self.dragged_slider = None
+
+        elif event.type == pygame.MOUSEMOTION:
+            # Если слайдер тянется, обновляем его значение
+            if self.is_dragging_slider and self.dragged_slider is not None:
+                option = self.options[self.dragged_slider]
+                self.adjust_slider(option, mouse_x)
+
         return True
-
     def adjust_slider(self, option, mouse_x):
-        # Вычисляем новое значение слайдера
-        relative_x = mouse_x - (self.slider_x_position + 70)  # Учитываем смещение слайдера
-        new_value = max(0, min(1, relative_x / self.slider_width))  # Ограничиваем значение от 0 до 1
+        if self.is_dragging_slider:
+            # Вычисляем новое значение слайдера
+            relative_x = mouse_x - self.slider_x_position
+            new_value = max(0, min(1, relative_x / self.slider_width))
 
-        # Обновляем настройки
-        self.settings[option["key"]] = new_value
+            # Обновляем значение в настройках
+            self.settings[option["key"]] = new_value
 
-        # Применяем новое значение
-        if option["key"] == "MUSIC_VOLUME":
-            pygame.mixer.music.set_volume(new_value)
-        elif option["key"] == "SFX_VOLUME":
-            for sound_name, sound in self.sound_effects.items():
-                sound.set_volume(new_value)
+            # Применяем изменения в игре
+            if option["key"] == "MUSIC_VOLUME":
+                pygame.mixer.music.set_volume(new_value)
+            elif option["key"] == "SFX_VOLUME":
+                for sound_name, sound in self.sound_effects.items():
+                    sound.set_volume(new_value)
+                if hasattr(self, "player"):
+                    self.player.update_sfx_volume(new_value)
 
-        # Сохраняем настройки
-        self.save_settings()
+            # Сохраняем настройки
+            self.save_settings()
 
     def adjust_select(self, option):
         current_value = self.settings[option["key"]]
