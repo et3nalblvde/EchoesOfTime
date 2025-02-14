@@ -1,6 +1,9 @@
 import pygame
 import os
 import time
+
+from sympy import false
+
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
@@ -201,6 +204,19 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
                                                   lambda: start_level_1(screen, restart_main_menu, exit_to_main_menu),
                                                   exit_to_main_menu)
                 game_over_screen_loop(game_over_screen)
+                running = False
+
+        death_animation_finished = False
+
+        if not health.is_alive() or death_animation_finished:
+            if not player_dead:
+                game_over_screen = GameOverScreen(
+                    screen,
+                    lambda: start_level_1(screen, restart_main_menu, exit_to_main_menu),
+                    exit_to_main_menu
+                )
+                game_over_screen_loop(game_over_screen)
+                player_dead = True
                 running = False
 
         collision.check_ladder_collision(player)

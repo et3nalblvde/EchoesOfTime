@@ -131,6 +131,7 @@ class CollisionLevel2:
             pygame.Rect(500, 157, 50, 270),
             pygame.Rect(1170, 1281, 90, 90),
             pygame.Rect(345, 960, 60, 340),
+            pygame.Rect(2303, 689, 60, 340),
             pygame.Rect(2190,1166 ,50, 90)
 
 
@@ -145,7 +146,7 @@ class CollisionLevel2:
             pygame.Rect(1660, 1161, 524, 90),
             pygame.Rect(407, 957, 1254, 90),
             pygame.Rect(2277, 298, 524, 90),
-            pygame.Rect(1546, 87, 524, 90),
+            pygame.Rect(1640, 183, 524, 90),
             pygame.Rect(1010, 316, 524, 90),
             pygame.Rect(434, 439, 504, 90),
             pygame.Rect(0, 157, 484, 90),

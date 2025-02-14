@@ -32,6 +32,21 @@ def draw_background(screen):
     scaled_background = scale_background(screen).convert()
     screen.blit(scaled_background, (0, 0))
 
+def game_over_screen_loop(game_over_screen):
+    clock = pygame.time.Clock()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            result = game_over_screen.handle_events(event)
+            if result == "quit":
+                running = False
+        game_over_screen.draw()
+        pygame.display.flip()
+        clock.tick(60)
+
+
 
 def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     player_sounds = load_sounds(SFX_VOLUME)
@@ -43,15 +58,18 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     all_sprites.add(player)
     all_sprites.add(shadow)
 
+    running = True
+    player_dead = False
+    death_animation_playing = False
+
     # Создаем экземпляры NeedleTrap и SpittingHead
     needle1 = NeedleTrap(724, 906, 64, 64)
     needle2 = NeedleTrap(747, 747, 64, 64)
-    spitting_head1 = SpittingHead(2516, 904, 64, 64)  # Позиция SpittingHead на уровне
-    spitting_head2 = SpittingHead(2552, 907, 64, 64)  # Позиция SpittingHead на уровне
+
 
     # Добавляем их в группу спрайтов
     all_sprites.add(needle1, needle2)
-    spitting_heads.add(spitting_head1, spitting_head2)  # Добавляем в новую группу
+
 
     bats = pygame.sprite.Group()
     bat1 = Bat(1553, 26, 2015, 26)
@@ -109,14 +127,27 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         if keys[pygame.K_f] and not control_shadow:
             player.attack(bats)
 
-        if not health.is_alive():
-            game_over_screen = GameOverScreen(
-                screen,
-                lambda: start_level_2(screen, restart_main_menu, exit_to_main_menu),
-                exit_to_main_menu
-            )
-            game_over_screen_loop(game_over_screen)
-            running = False
+        if death_animation_playing:
+            if player.is_death_animation_finished():
+                player_dead = True
+                game_over_screen = GameOverScreen(screen,
+                                                  lambda: start_level_2(screen, restart_main_menu, exit_to_main_menu),
+                                                  exit_to_main_menu)
+                game_over_screen_loop(game_over_screen)
+                running = False
+
+        death_animation_finished = False
+
+        if not health.is_alive() or death_animation_finished:
+            if not player_dead:
+                game_over_screen = GameOverScreen(
+                    screen,
+                    lambda: start_level_2(screen, restart_main_menu, exit_to_main_menu),
+                    exit_to_main_menu
+                )
+                game_over_screen_loop(game_over_screen)
+                player_dead = True
+                running = False
 
         collision.check_ladder_collision(player)
         collision.check_platform_collision(player)
@@ -141,6 +172,9 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         for spitting_head in spitting_heads:
             spitting_head.draw_fireballs(screen)
 
+        health.update_health()
+        health.draw(screen)
+
         health.draw(screen)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -148,6 +182,13 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
         for bat in bats:
             bat.attack(player)
+
+        if needle1.rect.colliderect(player.rect):
+            player.take_damage(1)
+        if needle2.rect.colliderect(player.rect):
+            player.take_damage(1)
+
+
         screen.blit(coordinates_text, (10, 10))
 
         pygame.display.flip()
