@@ -89,13 +89,14 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     global show_confirmation_menu
     show_confirmation_menu = False
     settings = load_settings()
+
     MUSIC_VOLUME = settings["MUSIC_VOLUME"]
     SFX_VOLUME = settings["SFX_VOLUME"]
 
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     player_sounds = load_sounds(SFX_VOLUME)
-
-    player = Player(58, 1226, player_sounds,1)
+    difficulty = settings.get("DIFFICULTY", "medium")
+    player = Player(58, 1226, player_sounds,1, difficulty)
     shadow = Shadow(80, 1226,1)
     health = Health(max_health=3, x=10, y=10, player=player)
 

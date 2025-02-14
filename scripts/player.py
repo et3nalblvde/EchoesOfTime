@@ -3,11 +3,15 @@ import os
 import re
 
 from collision import CollisionLevel1, CollisionLevel2, CollisionLevel3
+import settings
 from settings import player_sounds
 
 pygame.mixer.init()
 base_folder = os.path.dirname(os.path.abspath(__file__))
 sprite_folder = os.path.join(base_folder, '..', 'assets', 'sprites', 'player')
+
+
+
 
 
 def load_animations(folder, animation_names, scale_factor=2):
@@ -30,8 +34,9 @@ player_animations = load_animations(sprite_folder, animation_names)
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, sounds, levelnum=None):
+    def __init__(self, x, y, sounds, levelnum=None, difficulty=None):
         super().__init__()
+        self.difficulty = difficulty
         self.attacking = False
         self.can_jump = True
         self.sounds = sounds
@@ -131,13 +136,10 @@ class Player(pygame.sprite.Sprite):
                     self.velocity_y = 0
                 self.handle_collisions()
 
-
-
             self.x += self.velocity_x
             self.rect.topleft = (self.x, self.y)
 
     def handle_collisions(self):
-
 
         self.on_ladder = self.collision.check_ladder_collision(self)
         self.on_platform = self.collision.check_platform_collision(self)
@@ -204,7 +206,12 @@ class Player(pygame.sprite.Sprite):
     def take_damage(self, amount):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_hit_time >= self.hit_delay:
-            self.health -= amount
+            if self.difficulty == 'easy':
+                self.health -= amount * 0.5
+            if self.difficulty == 'medium':
+                self.health -= amount
+            if self.difficulty == 'hard':
+                self.health -= amount * 2
             if self.health < 0:
                 self.health = 0
             print(f"Player takes {amount} damage! Remaining health: {self.health}")

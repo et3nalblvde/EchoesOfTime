@@ -19,7 +19,7 @@
         "MOVE_RIGHT": "D",
         "ACTION": "escape"
     },
-    "DIFFICULTY": "hard",
+    "DIFFICULTY": "easy",
     "RESOLUTION": "1024x768",
     "LANGUAGE": "ru",
     "SHOW_TUTORIAL": true,

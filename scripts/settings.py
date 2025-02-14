@@ -17,6 +17,13 @@ BACKGROUND_GIF_PATH = os.path.join(ASSETS_DIR, 'sprites', 'background', 'backgro
 MUSIC_FILE = os.path.join(ASSETS_DIR, 'sounds', 'main_theme', 'Resting_Grounds.mp3')
 
 
+DIFFICULTY_MODIFIERS = {
+    "easy": 0.5,   # Легкая сложность: -0.5 сердечка
+    "medium": 1.0, # Средняя сложность: -1 сердечко
+    "hard": 1.5    # Сложная сложность: -1.5 сердечка
+}
+
+
 def load_sounds(volume):
     sound_folder = os.path.join(BASE_DIR, '..', 'assets', 'sounds', 'effects')
     sounds = {

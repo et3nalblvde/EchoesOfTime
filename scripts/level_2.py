@@ -56,8 +56,9 @@ def game_over_screen_loop(game_over_screen):
 
 def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     from level_complete import CongratulationsScreen
+    difficulty = settings.get("DIFFICULTY", "medium")
     player_sounds = load_sounds(SFX_VOLUME)
-    player = Player(287, 96, player_sounds, 2)
+    player = Player(287, 96, player_sounds, 2, difficulty)
     shadow = Shadow(153, 94, 2)
     health = Health(max_health=3, x=10, y=10, player=player)
     all_sprites = pygame.sprite.Group()

@@ -34,7 +34,8 @@ def draw_background(screen):
 
 def start_level_3(screen, restart_main_menu, exit_to_main_menu):
     player_sounds = load_sounds(SFX_VOLUME)
-    player = Player(128, 1302, player_sounds, 3)
+    difficulty = settings.get("DIFFICULTY", "medium")
+    player = Player(128, 1302, player_sounds, 3, difficulty)
     shadow = Shadow(1576, 832, 3)
     health = Health(max_health=3, x=10, y=10, player=player)
     all_sprites = pygame.sprite.Group()
