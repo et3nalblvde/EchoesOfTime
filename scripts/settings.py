@@ -126,7 +126,7 @@ class SettingsMenu:
         self.screen_width, self.screen_height = self.screen.get_size()
         self.back_button = pygame.Rect(
             self.screen_width * 0.5 - self.back_button_width * 0.5,
-            self.screen_height * 0.85 - self.back_button_height + 20,  # Adjusted back button position by 20px
+            self.screen_height * 0.91 - self.back_button_height + 20,  # Adjusted back button position by 20px
             self.back_button_width, self.back_button_height
         )
         self.slider_x_position = self.screen_width * 0.5 - self.slider_width * 0.5 + 50  # Move sliders to the right

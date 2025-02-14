@@ -23,6 +23,7 @@ FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
+show_confirmation_menu = False
 
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
@@ -149,10 +150,13 @@ def draw_main_menu(screen, current_frame):
 
     if continue_button:
         draw_button(screen, continue_button, "Продолжить игру", is_continue_hovered)
-
     draw_button(screen, start_button, "Начать игру", is_start_hovered)
     draw_button(screen, settings_button, "Настройки", is_settings_hovered)
     draw_button(screen, quit_button, "Выйти в меню", is_quit_hovered)
+
+    # Отрисовка окна подтверждения, если флаг установлен
+    if show_confirmation_menu:
+        draw_confirmation_menu(screen)
 
 
 def handle_continue_button(event):
@@ -171,22 +175,11 @@ def handle_continue_button(event):
 
 
 def handle_start_button(event):
+    global show_confirmation_menu
     if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
-        settings = load_settings()
-        settings["level_1"] = False
-
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-        settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
-        with open(settings_path, 'w') as f:
-            json.dump(settings, f, indent=4)
-
-        global continue_button
-        continue_button = None
-
-        pygame.mixer.music.fadeout(4000)
-        start_level_1(screen, restart_main_menu, exit_to_main_menu)
-        return False
+        # Показываем окно подтверждения только при нажатии на кнопку
+        show_confirmation_menu = True
+        return False  # Оставляем главное меню открытым
     return True
 
 
@@ -221,8 +214,9 @@ def get_last_completed_level():
 
 
 def handle_menu_events(event, settings_menu):
-    running = True  # Инициализация переменной running
+    global show_confirmation_menu
 
+    running = True
     if event.type == pygame.QUIT:
         return False, settings_menu
 
@@ -240,6 +234,26 @@ def handle_menu_events(event, settings_menu):
                 print("All levels are complete!")
             return False, settings_menu
 
+        # Обработка окна подтверждения
+        if show_confirmation_menu:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            yes_button = pygame.Rect(SCREEN_WIDTH // 3 - SCREEN_WIDTH // 8, SCREEN_HEIGHT // 2, SCREEN_WIDTH // 6,
+                                     SCREEN_HEIGHT // 10)
+            no_button = pygame.Rect(2 * SCREEN_WIDTH // 3 - SCREEN_WIDTH // 8, SCREEN_HEIGHT // 2, SCREEN_WIDTH // 6,
+                                    SCREEN_HEIGHT // 10)
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if yes_button.collidepoint(mouse_x, mouse_y):
+                    # Начать игру
+                    pygame.mixer.music.fadeout(4000)
+                    start_level_1(screen, restart_main_menu, exit_to_main_menu)
+                    show_confirmation_menu = False  # Скрываем окно подтверждения
+                    return False, settings_menu
+                elif no_button.collidepoint(mouse_x, mouse_y):
+                    # Отменить начало игры
+                    show_confirmation_menu = False  # Скрываем окно подтверждения
+                    return True, settings_menu
+
         running = handle_start_button(event) and running
         running = handle_continue_button(event) and running
         settings_menu, running = handle_settings_button(event, settings_menu)
@@ -252,22 +266,16 @@ def draw_confirmation_menu(screen):
     # Отрисовка окна подтверждения
     confirmation_text = font.render("Уверены, что хотите начать игру?", True, (255, 255, 255))
     yes_button = pygame.Rect(SCREEN_WIDTH // 3 - SCREEN_WIDTH // 8, SCREEN_HEIGHT // 2, SCREEN_WIDTH // 6,
-                             SCREEN_HEIGHT // 10)
+                              SCREEN_HEIGHT // 10)
     no_button = pygame.Rect(2 * SCREEN_WIDTH // 3 - SCREEN_WIDTH // 8, SCREEN_HEIGHT // 2, SCREEN_WIDTH // 6,
-                            SCREEN_HEIGHT // 10)
-
+                             SCREEN_HEIGHT // 10)
     pygame.draw.rect(screen, (0, 200, 0), yes_button)
     pygame.draw.rect(screen, (200, 0, 0), no_button)
-
     yes_text = font.render("Да", True, (0, 0, 0))
     no_text = font.render("Нет", True, (0, 0, 0))
-
     screen.blit(confirmation_text, (SCREEN_WIDTH // 2 - confirmation_text.get_width() // 2, SCREEN_HEIGHT // 3))
-    screen.blit(yes_text,
-                (yes_button.centerx - yes_text.get_width() // 2, yes_button.centery - yes_text.get_height() // 2))
+    screen.blit(yes_text, (yes_button.centerx - yes_text.get_width() // 2, yes_button.centery - yes_text.get_height() // 2))
     screen.blit(no_text, (no_button.centerx - no_text.get_width() // 2, no_button.centery - no_text.get_height() // 2))
-
-    return yes_button, no_button
 
 
 def handle_confirmation_events(event, yes_button, no_button):
@@ -288,37 +296,13 @@ def main_menu(screen):
     frame_counter = 0
     update_button_positions()
 
-    confirmation_mode = False
-    yes_button, no_button = None, None
-
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            running, settings_menu = handle_menu_events(event, settings_menu)
+            if not running:
+                break
 
-            if confirmation_mode:
-                # Обработка событий окна подтверждения
-                result = handle_confirmation_events(event, yes_button, no_button)
-                if result == "yes":
-                    confirmation_mode = False
-                    pygame.mixer.music.fadeout(4000)
-                    start_level_1(screen, restart_main_menu, exit_to_main_menu)
-                elif result == "no":
-                    confirmation_mode = False
-            else:
-                # Обработка событий главного меню
-                running, settings_menu = handle_menu_events(event, settings_menu)
-                if not running:
-                    break
-                if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(event.pos):
-                    confirmation_mode = True
-                    yes_button, no_button = draw_confirmation_menu(screen)
-
-        # Отрисовка
-        if confirmation_mode:
-            screen.fill((0, 0, 0))  # Чёрный фон
-            yes_button, no_button = draw_confirmation_menu(screen)
-        elif settings_menu:
+        if settings_menu:
             settings_menu.draw()
         else:
             if frame_counter >= frame_delay:
@@ -328,7 +312,11 @@ def main_menu(screen):
             else:
                 frame_counter += 1
 
-        pygame.display.flip()  # Обновление экрана
+        # Проверка необходимости отобразить окно подтверждения
+        if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(pygame.mouse.get_pos()):
+            draw_confirmation_menu(screen)
+
+        pygame.display.flip()
         clock.tick(FPS)
 
     pygame.quit()

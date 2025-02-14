@@ -293,7 +293,7 @@ class Player(pygame.sprite.Sprite):
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
                     bat.take_damage(1)
                 else:
-                    self.health -= 1
+                    pass
 
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:
