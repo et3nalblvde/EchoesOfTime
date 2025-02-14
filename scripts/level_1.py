@@ -3,7 +3,6 @@ import os
 import time
 
 from sympy import false
-
 from game_over import GameOverScreen
 from player import Player
 from shadow import Shadow
@@ -87,6 +86,8 @@ def game_over_screen_loop(game_over_screen):
 
 
 def start_level_1(screen, restart_main_menu, exit_to_main_menu):
+    global show_confirmation_menu
+    show_confirmation_menu = False
     settings = load_settings()
     MUSIC_VOLUME = settings["MUSIC_VOLUME"]
     SFX_VOLUME = settings["SFX_VOLUME"]
@@ -311,7 +312,7 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
             all_sprites.empty()
             collision.platforms.clear()
             collision.walls.clear()
-            congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu)
+            congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu, current_level="level_1")
             congratulations_screen.congratulations_screen()
             running = False
 

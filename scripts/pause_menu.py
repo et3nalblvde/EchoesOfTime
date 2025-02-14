@@ -75,15 +75,17 @@ class PauseMenu:
         pygame.display.flip()
 
     def handle_events(self, event):
-        from main_menu import main_menu  
+        from main_menu import main_menu
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  
+            if event.button == 1:
                 pos = pygame.mouse.get_pos()
                 for button, text in self.buttons:
                     if button.collidepoint(pos):
                         if text == "Продолжить":
-                            return "continue"  
+                            return "continue"
                         elif text == "Выйти":
-                            main_menu(self.screen)  
-                            return "quit"  
+                            global show_confirmation_menu
+                            show_confirmation_menu = False  # Сбрасываем флаг окна подтверждения
+                            main_menu(self.screen)
+                            return "quit"
         return None

@@ -1,3 +1,5 @@
+from pickle import GLOBAL
+
 import pygame
 import os
 from PIL import Image
@@ -23,7 +25,7 @@ FONT_PATH = os.path.join(FONTS_DIR, 'PressStart2P.ttf')
 
 base_font_size = 25
 font = pygame.font.Font(FONT_PATH, base_font_size)
-show_confirmation_menu = False
+
 
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
@@ -39,6 +41,7 @@ for frame in range(background_image.n_frames):
 
 frame_count = len(background_frames)
 
+show_confirmation_menu = False
 
 def update_level_2_status():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -261,7 +264,6 @@ def handle_menu_events(event, settings_menu):
 
     return running, settings_menu
 
-
 def draw_confirmation_menu(screen):
     # Отрисовка окна подтверждения
     confirmation_text = font.render("Уверены, что хотите начать игру?", True, (255, 255, 255))
@@ -312,9 +314,8 @@ def main_menu(screen):
             else:
                 frame_counter += 1
 
-        # Проверка необходимости отобразить окно подтверждения
-        if event.type == pygame.MOUSEBUTTONDOWN and start_button.collidepoint(pygame.mouse.get_pos()):
-            draw_confirmation_menu(screen)
+
+
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -323,10 +324,14 @@ def main_menu(screen):
 
 
 def restart_main_menu():
+    global show_confirmation_menu
+    show_confirmation_menu = False  # Сбрасываем флаг окна подтверждения
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     main_menu(screen)
 
 
 def exit_to_main_menu():
+    global show_confirmation_menu
+    show_confirmation_menu = False  # Сбрасываем флаг окна подтверждения
     return True

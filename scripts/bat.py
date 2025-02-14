@@ -225,7 +225,7 @@ class Bat(pygame.sprite.Sprite):
     def attack(self, player):
         if not self.attacking:
             self.attacking = True
-            attack_radius = 10
+            attack_radius = 20
             attack_center = pygame.Vector2(self.x + self.rect.width / 2,
                                            self.y + self.rect.height / 2)
             player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)

@@ -150,7 +150,7 @@ class CollisionLevel2:
             pygame.Rect(1010, 316, 524, 90),
             pygame.Rect(434, 439, 504, 90),
             pygame.Rect(0, 157, 484, 90),
-            pygame.Rect(0, 1365, 2560, 50)
+            pygame.Rect(0, 1369, 2560, 50)
         ]
         self.boxes = [
             pygame.Rect(904, 1280, 90, 90),

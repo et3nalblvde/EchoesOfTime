@@ -82,7 +82,7 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     bats = pygame.sprite.Group()
     bat1 = Bat(1553, 80, 2015, 80)
     bat2 = Bat(439, 889, 1209, 885)
-    bat3 = Bat(1683, 1320, 2268, 1320)
+    bat3 = Bat(1683, 1319, 2268, 1319)
     bats.add(bat1, bat2,bat3)
     all_sprites.add(bat1, bat2,bat3)
 
@@ -261,9 +261,24 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
             all_sprites.empty()
             collision.platforms.clear()
             collision.walls.clear()
-            congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu)
+            congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu, current_level="level_2")
             congratulations_screen.congratulations_screen()
             running = False
+
+        if needle1.rect.colliderect(player.rect):
+            player.take_damage(1)
+        if needle2.rect.colliderect(player.rect):
+            player.take_damage(1)
+        if needle3.rect.colliderect(player.rect):
+            player.take_damage(1)
+        if needle4.rect.colliderect(player.rect):
+            player.take_damage(1)
+        if needle5.rect.colliderect(player.rect):
+            player.take_damage(1)
+
+
+        for bat in bats:
+            bat.attack(player)
 
         health.update_health()
         health.draw(screen)
@@ -274,6 +289,13 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         font = pygame.font.Font(None, 36)
         coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
         screen.blit(coordinates_text, (10, 10))
+
+        if door.is_open and door.rect.colliderect(player.rect):
+            update_level_status("level_2", "complete")  # Обновляем статус уровня
+            congratulations_screen = CongratulationsScreen(screen, exit_to_main_menu)
+            congratulations_screen.congratulations_screen()
+            running = False
+
 
         pygame.display.flip()
         clock.tick(60)
