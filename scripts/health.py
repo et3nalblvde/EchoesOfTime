@@ -53,7 +53,10 @@ class Health:
         self.x = x
         self.y = y
         self.player = player
-        self.heart_full, self.heart_empty, self.heart_half = load_heart_sprites()  
+        self.heart_full, self.heart_empty, self.heart_half = load_heart_sprites()
+
+    def update_health(self):
+        self.current_health = self.player.health
 
     def take_damage(self, amount):
         
@@ -62,19 +65,12 @@ class Health:
             self.current_health = 0
 
     def draw(self, screen):
-        
-        heart_width = 32  
-        hearts_to_draw = int(self.current_health)  
-
-        
+        heart_width = 32
+        hearts_to_draw = int(self.current_health)
         for i in range(hearts_to_draw):
             screen.blit(self.heart_full, (self.x + i * heart_width, self.y))
-
-        
         for i in range(hearts_to_draw, self.max_health):
             screen.blit(self.heart_empty, (self.x + i * heart_width, self.y))
-
-        
         if self.current_health % 1 != 0:
             screen.blit(self.heart_half, (self.x + hearts_to_draw * heart_width, self.y))
 

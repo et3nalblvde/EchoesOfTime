@@ -3,12 +3,11 @@ import os
 from game_over import GameOverScreen
 from player import Player
 from health import Health
-from collision import CollisionLevel2
+from collision import CollisionLevel3
 from pause_menu import PauseMenu
 from bat import Bat
 from settings import load_sounds, load_settings
 from shadow import Shadow
-from trap import NeedleTrap, SpittingHead  # Импортируем SpittingHead
 
 WHITE = (255, 255, 255)
 
@@ -19,7 +18,7 @@ SFX_VOLUME = settings["SFX_VOLUME"]
 pygame.mixer.music.set_volume(MUSIC_VOLUME)
 
 base_folder = os.path.dirname(os.path.abspath(__file__))
-level_2_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_2.png')
+level_2_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_3.png')
 level_2_image = pygame.image.load(level_2_image_path)
 
 
@@ -33,33 +32,23 @@ def draw_background(screen):
     screen.blit(scaled_background, (0, 0))
 
 
-def start_level_2(screen, restart_main_menu, exit_to_main_menu):
+def start_level_3(screen, restart_main_menu, exit_to_main_menu):
     player_sounds = load_sounds(SFX_VOLUME)
-    player = Player(128, 1302, player_sounds, 2)
-    shadow = Shadow(1576, 832, 2)
+    player = Player(128, 1302, player_sounds, 3)
+    shadow = Shadow(1576, 832, 3)
     health = Health(max_health=3, x=10, y=10, player=player)
     all_sprites = pygame.sprite.Group()
-    spitting_heads = pygame.sprite.Group()  # Новая группа для SpittingHead
     all_sprites.add(player)
     all_sprites.add(shadow)
-
-    # Создаем экземпляры NeedleTrap и SpittingHead
-    needle1 = NeedleTrap(724, 906, 64, 64)
-    needle2 = NeedleTrap(747, 747, 64, 64)
-    spitting_head1 = SpittingHead(2516, 904, 64, 64)  # Позиция SpittingHead на уровне
-    spitting_head2 = SpittingHead(2552, 907, 64, 64)  # Позиция SpittingHead на уровне
-
-    # Добавляем их в группу спрайтов
-    all_sprites.add(needle1, needle2)
-    spitting_heads.add(spitting_head1, spitting_head2)  # Добавляем в новую группу
-
     bats = pygame.sprite.Group()
+
+
     bat1 = Bat(1553, 26, 2015, 26)
     bat2 = Bat(439, 889, 1172, 885)
     bats.add(bat1, bat2)
     all_sprites.add(bat1, bat2)
 
-    collision = CollisionLevel2()
+    collision = CollisionLevel3()
 
     clock = pygame.time.Clock()
     running = True
@@ -69,9 +58,6 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     pause_menu = PauseMenu(screen)
 
     while running:
-        dt = clock.get_time() / 1000  # delta time
-        current_time = pygame.time.get_ticks()  # Текущее время
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -128,26 +114,14 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         collision.check_box_collision(shadow)
         collision.draw_collision_debug(screen)
 
-        # Обновление анимации иголок
-        needle1.update(dt)
-        needle2.update(dt)
-        all_sprites.update(dt)
+        all_sprites.update(clock.get_time() / 1000)
         all_sprites.draw(screen)
-
-        # Обновление и рисование SpittingHead отдельно
-        spitting_heads.update(dt, current_time)
-        spitting_heads.draw(screen)
-
-        for spitting_head in spitting_heads:
-            spitting_head.draw_fireballs(screen)
 
         health.draw(screen)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
         font = pygame.font.Font(None, 36)
         coordinates_text = font.render(f"X: {mouse_x} Y: {mouse_y}", True, WHITE)
-        for bat in bats:
-            bat.attack(player)
         screen.blit(coordinates_text, (10, 10))
 
         pygame.display.flip()

@@ -244,3 +244,121 @@ class CollisionLevel2:
             pygame.draw.rect(screen, (0, 255, 0), platform, 6)
         for box in self.boxes:
             pygame.draw.rect(screen, (0, 0, 255), box, 6)
+class CollisionLevel3:
+    def __init__(self, ):
+        self.ladders = [
+            pygame.Rect(192, 713, 90, 370),
+            pygame.Rect(102, 339, 90, 370),
+            pygame.Rect(2318, 756, 90, 300),
+
+
+
+        ]
+        self.walls = [
+            pygame.Rect(0, 0, 2, 1500),
+            pygame.Rect(2559, 0, 2, 1500)
+        ]
+        self.platforms = [
+            pygame.Rect(1, 712, 171, 76),
+            pygame.Rect(2316, 987, 484, 90),
+            pygame.Rect(181, 336, 504, 90),
+            pygame.Rect(767, 471, 484, 90),
+            pygame.Rect(1352, 325, 574, 90),
+            pygame.Rect(2210, 316, 484, 90),
+            pygame.Rect(1777, 757, 484, 90),
+            pygame.Rect(1789, 1176, 504, 90),
+            pygame.Rect(1266, 970, 484, 90),
+            pygame.Rect(692, 852, 484, 90),
+            pygame.Rect(148, 1040, 484, 90),
+            pygame.Rect(0, 1365, 2560, 50)
+        ]
+        self.boxes = [
+            pygame.Rect(1563, 239, 90, 90),
+            pygame.Rect(1801, 716, 126, 90),
+            pygame.Rect(1827, 630, 90, 90),
+            pygame.Rect(443, 959, 90, 90),
+            pygame.Rect(1102, 1280, 90, 90),
+            pygame.Rect(745, 1280, 90, 90),
+            pygame.Rect(697, 1195, 90, 90),
+            pygame.Rect(663, 1280, 90, 90),
+
+        ]
+
+    def check_collisions(self, player, objects):
+
+        player.on_ground = True
+        new_x = player.x + player.velocity_x
+        new_y = player.y + player.velocity_y
+
+        temp_rect = player.rect.copy()
+        temp_rect.topleft = (new_x, new_y)
+
+        horizontal_collision = False
+        vertical_collision = False
+
+        for obj in objects:
+            if temp_rect.colliderect(obj):
+                player_center = (temp_rect.centerx, temp_rect.centery)
+                obj_center = (obj.centerx, obj.centery)
+
+                dx = player_center[0] - obj_center[0]
+                dy = player_center[1] - obj_center[1]
+
+                overlap_x = (temp_rect.width / 2) + (obj.width / 2) - abs(dx)
+                overlap_y = (temp_rect.height / 2) + (obj.height / 2) - abs(dy)
+
+                if overlap_x > 0 and overlap_y > 0:
+                    if overlap_x < overlap_y:
+                        if dx > 0:
+                            player.x += overlap_x
+                        else:
+                            player.x -= overlap_x
+                        player.velocity_x = 0
+                        horizontal_collision = True
+                    else:
+                        if dy > 0:
+                            player.y += overlap_y
+                            player.velocity_y = 0
+                            player.on_ground = True
+                            if player.state == "jump":
+                                player.change_state("idle")
+                        else:
+                            player.y -= overlap_y
+                            player.velocity_y = 0
+                        vertical_collision = True
+
+        player.rect.topleft = (player.x, player.y)
+
+    def check_wall_collision(self, player):
+        self.check_collisions(player, self.walls)
+
+    def check_ladder_collision(self, player):
+        on_ladder = False
+        for ladder in self.ladders:
+            if ladder.colliderect(player.rect):
+                player.collision_type = 'ladder'
+                on_ladder = True
+                player.on_ladder = True
+                player.rect.bottom = ladder.top
+                break
+        if not on_ladder:
+            player.on_ladder = False
+        return on_ladder
+
+
+
+    def check_platform_collision(self, player):
+        self.check_collisions(player, self.platforms)
+
+    def check_box_collision(self, player):
+        self.check_collisions(player, self.boxes)
+
+    def draw_collision_debug(self, screen):
+        for ladder in self.ladders:
+            pygame.draw.rect(screen, (255, 0, 0), ladder, 6)
+        for wall in self.walls:
+            pygame.draw.rect(screen, (0, 0, 0), wall, 6)
+        for platform in self.platforms:
+            pygame.draw.rect(screen, (0, 255, 0), platform, 6)
+        for box in self.boxes:
+            pygame.draw.rect(screen, (0, 0, 255), box, 6)

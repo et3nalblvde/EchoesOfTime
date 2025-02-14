@@ -73,7 +73,6 @@ class Bat(pygame.sprite.Sprite):
         self.target_y = end_y
 
     def update(self, hero_attack_rect=None, player=None):
-
         if self.health <= 0 and self.state != "die":
             self.change_state("die")
             self.frame_index = 0
@@ -86,57 +85,58 @@ class Bat(pygame.sprite.Sprite):
             if self.animation_counter >= self.animation_delays["die"]:
                 self.frame_index += 1
                 self.animation_counter = 0
-
                 if self.frame_index >= len(self.animations["die"]):
                     self.frame_index = len(self.animations["die"]) - 1
                     self.kill()
-
             self.image = self.animations["die"][self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
-
             return
-
 
         elif self.state == "hurt":
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays["hurt"]:
                 self.frame_index += 1
                 self.animation_counter = 0
-
                 if self.frame_index >= len(self.animations["hurt"]):
-                    self.change_state("run")
-
+                    self.change_state("run")  # Возвращаемся в состояние "run"
             self.image = self.animations["hurt"][self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
 
-        else:
+        elif self.state == "attack":
+            self.animation_counter += 1
+            if self.animation_counter >= self.animation_delays["attack"]:
+                self.frame_index += 1
+                self.animation_counter = 0
+                if self.frame_index >= len(self.animations["attack"]):
+                    self.frame_index = 0
+                    self.change_state("run")  # Возвращаемся в состояние "run"
+                    self.attacking = False  # Сбрасываем флаг атаки
+            self.image = self.animations[self.state][self.frame_index]
+            self.image = pygame.transform.scale(self.image, (
+                self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+            if self.facing_left:
+                self.image = pygame.transform.flip(self.image, True, False)
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (self.x, self.y)
 
+        else:  # Состояние "run"
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
-
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
-
                 self.rect = self.image.get_rect()
                 self.rect.topleft = (self.x, self.y)
                 self.animation_counter = 0
 
-        if self.state != "die":
-            self.x += self.velocity_x
-            self.y += self.velocity_y
-
-            if not self.on_ground:
-                self.velocity_y += self.gravity
-
-            self.rect.topleft = (self.x, self.y)
-            self.handle_collisions()
+            if self.state != "die":
+                self.move_towards_target()  # Вызываем метод движения
+                self.handle_collisions()
 
             if self.x == self.target_x and self.y == self.target_y:
                 if self.target_x == self.end_x:
@@ -146,18 +146,8 @@ class Bat(pygame.sprite.Sprite):
                     self.target_x = self.end_x
                     self.target_y = self.end_y
 
-            self.move_towards_target()
-
-        if player:
-
-            bat_center = pygame.Vector2(self.x + self.rect.width / 2, self.y + self.rect.height / 2)
-            player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)
-
-            distance = bat_center.distance_to(player_center)
-
-            if distance <= 50:
-                self.take_damage(1)
-                print("Bat takes damage!")
+        if self.state != "attack":
+            self.attacking = False
 
     def handle_collisions(self):
 
@@ -202,7 +192,6 @@ class Bat(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
 
     def move_towards_target(self):
-
         if self.x < self.target_x:
             self.velocity_x = self.speed
             self.facing_left = True
@@ -219,6 +208,10 @@ class Bat(pygame.sprite.Sprite):
         else:
             self.velocity_y = 0
 
+        self.x += self.velocity_x
+        self.y += self.velocity_y
+        self.rect.topleft = (self.x, self.y)
+
     def take_damage(self, amount):
         self.hits_taken += 1
         if self.hits_taken >= 3:
@@ -232,16 +225,12 @@ class Bat(pygame.sprite.Sprite):
     def attack(self, player):
         if not self.attacking:
             self.attacking = True
-
-            attack_radius = 50
+            attack_radius = 10
             attack_center = pygame.Vector2(self.x + self.rect.width / 2,
                                            self.y + self.rect.height / 2)
-
             player_center = pygame.Vector2(player.x + player.rect.width / 2, player.y + player.rect.height / 2)
             distance = attack_center.distance_to(player_center)
-
             if distance <= attack_radius:
                 player.take_damage(1)
                 print("Bat attacks the player!")
-
-            self.change_state("attack")
+                self.change_state("attack")

@@ -207,6 +207,8 @@ class Player(pygame.sprite.Sprite):
                 self.health = 0
             print(f"Player takes {amount} damage! Remaining health: {self.health}")
             self.last_hit_time = current_time
+            if self.health <= 0:
+                self.change_state("death")
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
@@ -239,6 +241,17 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
+                if self.facing_left:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (self.x, self.y)
+            if new_state == "death":
+                self.frame_index = 0
+                self.state = new_state
+                self.image = self.animations[self.state][self.frame_index]
+                self.image = pygame.transform.scale(self.image, (
+                    self.image.get_width() * self.scale_factor,
+                    self.image.get_height() * self.scale_factor))
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
                 self.rect = self.image.get_rect()
@@ -291,7 +304,7 @@ class Player(pygame.sprite.Sprite):
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
                     bat.take_damage(1)
                 else:
-                    self.health -= 1
+                    pass
 
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:

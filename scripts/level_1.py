@@ -123,6 +123,7 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
     collision = CollisionLevel1()
 
 
+
     running = True
     player_dead = False
     death_animation_playing = False
@@ -298,9 +299,14 @@ def start_level_1(screen, restart_main_menu, exit_to_main_menu):
             congratulations_screen.congratulations_screen()
             running = False
 
+        health.update_health()
+        health.draw(screen)
+
         health.draw(screen)
 
         all_sprites.update(clock.get_time() / 1000)
+        for bat in bats:
+            bat.attack(player)
         all_sprites.draw(screen)
         collision.draw_collision_debug(screen)
 
