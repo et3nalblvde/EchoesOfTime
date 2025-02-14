@@ -2,7 +2,7 @@ import pygame
 import os
 import re
 
-from collision import CollisionLevel1, CollisionLevel2
+from collision import CollisionLevel1, CollisionLevel2, CollisionLevel3
 from settings import player_sounds
 
 pygame.mixer.init()
@@ -79,42 +79,25 @@ class Player(pygame.sprite.Sprite):
             self.collision = CollisionLevel1()
         elif levelnum == 2:
             self.collision = CollisionLevel2()
+        elif levelnum == 3:
+            self.collision = CollisionLevel3()
 
     def update_sfx_volume(self, volume):
         for sound in self.sounds.values():
             sound.set_volume(volume)
 
     def update(self, delta_time):
-        # Проверка здоровья игрока и переключение в состояние "death"
         if self.health <= 0 and self.state != "death":
             self.change_state("death")
             self.frame_index = 0
 
-        # Обработка состояния "death" (смерть)
         if self.state == "death":
-            self.animation_counter += 1
-            if self.animation_counter >= self.animation_delays["death"]:
-                self.frame_index += 1
-                self.animation_counter = 0
-                if self.frame_index >= len(self.animations["death"]):
-                    self.frame_index = len(self.animations["death"]) - 1
-                    return True  # Анимация смерти завершена
-
             self.image = self.animations["death"][self.frame_index]
-            self.image = pygame.transform.scale(self.image, (
-                self.image.get_width() * self.scale_factor,
-                self.image.get_height() * self.scale_factor))
-            if self.facing_left:
-                self.image = pygame.transform.flip(self.image, True, False)
             self.rect = self.image.get_rect()
             self.rect.topleft = (self.x, self.y)
-
-            # Если анимация смерти завершена, возвращаем флаг
-            if self.is_death_animation_finished():
-                return True  # Сигнал о завершении анимации смерти
-
+            if self.frame_index == len(self.animations["death"]) - 1:
+                return
         else:
-            # Обновление анимации для других состояний
             self.animation_counter += 1
             if self.animation_counter >= self.animation_delays.get(self.state, 10):
                 if self.state == "attack" and self.frame_index == len(self.animations["attack"]) - 1:
@@ -124,15 +107,13 @@ class Player(pygame.sprite.Sprite):
                     self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
                     self.image = self.animations[self.state][self.frame_index]
                     self.image = pygame.transform.scale(self.image, (
-                        self.image.get_width() * self.scale_factor,
-                        self.image.get_height() * self.scale_factor))
+                        self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
                     if self.facing_left:
                         self.image = pygame.transform.flip(self.image, True, False)
                     self.rect = self.image.get_rect()
                     self.rect.topleft = (self.x, self.y)
                     self.animation_counter = 0
 
-            # Обработка лестниц
             if self.on_ladder:
                 self.velocity_y = 0
                 keys = pygame.key.get_pressed()
@@ -143,21 +124,17 @@ class Player(pygame.sprite.Sprite):
                     self.y += 10
                     self.change_state("idle")
             else:
-                # Обработка гравитации
                 if not self.on_platform and not self.on_box:
                     self.velocity_y += self.gravity
                 self.y += self.velocity_y
                 if self.on_platform or self.on_box:
                     self.velocity_y = 0
-
-                # Обработка столкновений
                 self.handle_collisions()
 
-            # Обновление координат игрока
+
+
             self.x += self.velocity_x
             self.rect.topleft = (self.x, self.y)
-
-        return False  # Анимация смерти еще не завершена
 
     def handle_collisions(self):
 
@@ -232,8 +209,6 @@ class Player(pygame.sprite.Sprite):
                 self.health = 0
             print(f"Player takes {amount} damage! Remaining health: {self.health}")
             self.last_hit_time = current_time
-            if self.health <= 0:
-                self.change_state("death")
 
     def change_state(self, new_state):
         if new_state in self.animations and new_state != self.state:
@@ -266,17 +241,6 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.animations[self.state][self.frame_index]
                 self.image = pygame.transform.scale(self.image, (
                     self.image.get_width() * self.scale_factor, self.image.get_height() * self.scale_factor))
-                if self.facing_left:
-                    self.image = pygame.transform.flip(self.image, True, False)
-                self.rect = self.image.get_rect()
-                self.rect.topleft = (self.x, self.y)
-            if new_state == "death":
-                self.frame_index = 0
-                self.state = new_state
-                self.image = self.animations[self.state][self.frame_index]
-                self.image = pygame.transform.scale(self.image, (
-                    self.image.get_width() * self.scale_factor,
-                    self.image.get_height() * self.scale_factor))
                 if self.facing_left:
                     self.image = pygame.transform.flip(self.image, True, False)
                 self.rect = self.image.get_rect()
@@ -329,7 +293,7 @@ class Player(pygame.sprite.Sprite):
                 if self.rect.colliderect(bat.rect) and self.state == "attack":
                     bat.take_damage(1)
                 else:
-                    pass
+                    self.health -= 1
 
     def is_death_animation_finished(self):
         if self.state == "death" and self.frame_index == len(self.animations["death"]) - 1:
