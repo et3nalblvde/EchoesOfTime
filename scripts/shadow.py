@@ -46,7 +46,7 @@ class Shadow(pygame.sprite.Sprite):
         self.velocity_y = 0
         self.speed = 7
         self.gravity = 0.5
-        self.jump_strength = -12
+        self.jump_strength = -17
         self.on_ground = False
         self.on_ladder = False
 
@@ -90,10 +90,10 @@ class Shadow(pygame.sprite.Sprite):
         if self.on_ladder:
             self.velocity_y = 0
             if keys[pygame.K_UP]:
-                self.y -= 50
+                self.y -= 10
                 self.change_state("idle")
             elif keys[pygame.K_DOWN]:
-                self.y += 5
+                self.y += 10
                 self.change_state("idle")
             else:
                 self.change_state("idle")
