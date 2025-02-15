@@ -12,6 +12,7 @@ from Door import Door
 from lever import Lever  # Импортируем Lever
 from trap import NeedleTrap, SpittingHead  # Импортируем SpittingHead
 import time
+import json
 WHITE = (255, 255, 255)
 
 settings = load_settings()
@@ -27,6 +28,14 @@ def update_level_status(level, status):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
     settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
+
+    with open(settings_path, 'r') as file:
+        settings = json.load(file)
+
+    settings[level] = status
+
+    with open(settings_path, 'w') as file:
+        json.dump(settings, file, indent=4)
 
 
 def scale_background(screen):
@@ -57,7 +66,9 @@ def game_over_screen_loop(game_over_screen):
 def start_level_2(screen, restart_main_menu, exit_to_main_menu):
     from level_complete import CongratulationsScreen
     difficulty = settings.get("DIFFICULTY", "medium")
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
     player_sounds = load_sounds(SFX_VOLUME)
+
     player = Player(287, 96, player_sounds, 2, difficulty)
     shadow = Shadow(153, 94, 2)
     health = Health(max_health=3, x=10, y=10, player=player)
@@ -206,8 +217,6 @@ def start_level_2(screen, restart_main_menu, exit_to_main_menu):
         spitting_heads.update(dt, current_time)
         spitting_heads.draw(screen)
 
-        for spitting_head in spitting_heads:
-            spitting_head.draw_fireballs(screen)
 
         # Логика активации рычагов
         if not control_shadow:

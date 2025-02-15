@@ -243,10 +243,13 @@ class SettingsMenu:
                 self.adjust_slider(option, mouse_x)
 
         return True
+
     def adjust_slider(self, option, mouse_x):
         if self.is_dragging_slider:
-            # Вычисляем новое значение слайдера
-            relative_x = mouse_x - self.slider_x_position
+            # Учитываем смещение слайдера (70 пикселей вправо)
+            slider_start_x = self.slider_x_position + 70
+            # Вычисляем новое значение слайдера относительно его реального начала
+            relative_x = mouse_x - slider_start_x
             new_value = max(0, min(1, relative_x / self.slider_width))
 
             # Обновляем значение в настройках

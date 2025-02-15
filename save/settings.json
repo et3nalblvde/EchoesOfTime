@@ -19,7 +19,7 @@
         "MOVE_RIGHT": "D",
         "ACTION": "escape"
     },
-    "DIFFICULTY": "hard",
+    "DIFFICULTY": "easy",
     "RESOLUTION": "1024x768",
     "LANGUAGE": "ru",
     "SHOW_TUTORIAL": true,
@@ -32,5 +32,6 @@
     "ECHO_OPACITY": 100,
     "level_3": true,
     "Level_2": true,
-    "level_1": "complete"
+    "level_1": "complete",
+    "level_2": "complete"
 }

@@ -6,6 +6,7 @@ from PIL import Image
 from scripts.settings import load_settings, SettingsMenu
 from level_1 import start_level_1
 from level_2 import start_level_2
+from level_3 import start_level_3
 from pause_menu import PauseMenu
 import json
 
@@ -69,7 +70,7 @@ def update_button_positions():
 
     has_completed_levels = any(
         level in settings and settings[level] == "complete"
-        for level in ["level_1", "level_2"]
+        for level in ["level_1", "level_2", "level_3"]
     )
 
     if has_completed_levels:
@@ -173,6 +174,8 @@ def handle_continue_button(event):
                 start_level_1(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
             elif level == "level_2":
                 start_level_2(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
+            elif level == "level_3":
+                start_level_3(screen, restart_main_menu, exit_to_main_menu, player_x, player_y)
         return False
     return True
 
@@ -208,7 +211,7 @@ def handle_quit_button(event):
 
 def get_last_completed_level():
     settings = load_settings()
-    levels = ["level_1", "level_2"]
+    levels = ["level_1", "level_2", "level_3"]
     last_completed = None
     for level in levels:
         if level in settings and settings[level] == "complete":
@@ -234,6 +237,8 @@ def handle_menu_events(event, settings_menu):
             if last_completed_level == "level_1":
                 start_level_2(screen, restart_main_menu, exit_to_main_menu)
             elif last_completed_level == "level_2":
+                start_level_3(screen, restart_main_menu, exit_to_main_menu)
+            elif last_completed_level == "level_3":
                 print("All levels are complete!")
             return False, settings_menu
 

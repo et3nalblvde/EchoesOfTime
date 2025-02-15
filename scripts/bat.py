@@ -150,14 +150,19 @@ class Bat(pygame.sprite.Sprite):
             self.attacking = False
 
     def handle_collisions(self):
+        # Сохраняем предыдущие координаты объекта
+        prev_x, prev_y = self.x, self.y
 
+        # Проверяем коллизии с каждой платформой
         for platform in self.collision.platforms:
             if self.rect.colliderect(platform):
+                # Вычисляем пересечение по осям X и Y
                 overlap_x = min(self.rect.right - platform.left, platform.right - self.rect.left)
                 overlap_y = min(self.rect.bottom - platform.top, platform.bottom - self.rect.top)
 
+                # Определяем, какую ось нужно скорректировать
                 if overlap_x < overlap_y:
-
+                    # Коррекция по оси X
                     if self.velocity_x > 0:
                         self.rect.right = platform.left
                     elif self.velocity_x < 0:
@@ -165,6 +170,7 @@ class Bat(pygame.sprite.Sprite):
                     self.x = self.rect.x
                     self.velocity_x = 0
                 else:
+                    # Коррекция по оси Y
                     if self.velocity_y > 0:
                         self.rect.bottom = platform.top
                         self.on_ground = True
@@ -174,7 +180,12 @@ class Bat(pygame.sprite.Sprite):
                     self.y = self.rect.y
                     self.velocity_y = 0
 
+        # Если объект застрял, возвращаем его на предыдущие координаты
+        if self.rect.collidelist([platform for platform in self.collision.platforms]) != -1:
+            self.x, self.y = prev_x, prev_y
+            self.rect.topleft = (self.x, self.y)
 
+        # Обновляем положение объекта
         self.rect.topleft = (self.x, self.y)
 
     def change_state(self, new_state):

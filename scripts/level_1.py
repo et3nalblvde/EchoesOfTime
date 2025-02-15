@@ -37,18 +37,6 @@ import os
 from lever import Lever
 
 
-def update_level_status(level, status):
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-    settings_path = os.path.join(PROJECT_DIR, 'save', 'settings.json')
-
-    with open(settings_path, 'r') as file:
-        settings = json.load(file)
-
-    settings[level] = status
-
-    with open(settings_path, 'w') as file:
-        json.dump(settings, file, indent=4)
 
 
 def update_level_status(level, status):

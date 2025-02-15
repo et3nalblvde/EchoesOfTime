@@ -11,7 +11,8 @@ from lever import Lever  # Импортируем Lever
 from settings import load_sounds, load_settings
 from shadow import Shadow
 import time
-
+from trap import NeedleTrap
+import json
 from endscene import CreditsScreen
 WHITE = (255, 255, 255)
 
@@ -24,6 +25,20 @@ pygame.mixer.music.set_volume(MUSIC_VOLUME)
 base_folder = os.path.dirname(os.path.abspath(__file__))
 level_2_image_path = os.path.join(base_folder, '..', 'assets', 'sprites', 'maps', 'level_3.png')
 level_2_image = pygame.image.load(level_2_image_path)
+
+def game_over_screen_loop(game_over_screen):
+    clock = pygame.time.Clock()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            result = game_over_screen.handle_events(event)
+            if result == "quit":
+                running = False
+        game_over_screen.draw()
+        pygame.display.flip()
+        clock.tick(60)
 
 
 def scale_background(screen):
@@ -43,6 +58,7 @@ def update_level_status(level, status):
 
 
 def start_level_3(screen, restart_main_menu, exit_to_main_menu):
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
     player_sounds = load_sounds(SFX_VOLUME)
     difficulty = settings.get("DIFFICULTY", "medium")
     player = Player(128, 1302, player_sounds, 3, difficulty)
@@ -53,10 +69,19 @@ def start_level_3(screen, restart_main_menu, exit_to_main_menu):
     all_sprites.add(shadow)
     bats = pygame.sprite.Group()
 
-    bat1 = Bat(1919, 1100, 2205, 1100)
+    running = True
+    player_dead = False
+    death_animation_playing = False
+
+    needle1 = NeedleTrap(567, 990, 64, 64)
+    needle2 = NeedleTrap(2036, 690, 64, 64)
+    all_sprites.add(needle1, needle2)
+
+
+    bat1 = Bat(1919, 1077, 2200, 1077)
     bat2 = Bat(2216, 240, 2508, 240)
     bat3 = Bat(1324, 1288, 1703, 1288)
-    bat4 = Bat(226, 263, 586, 263)
+    bat4 = Bat(226, 237, 586, 237)
     bats.add(bat1, bat2,bat3,bat4)
     all_sprites.add(bat1, bat2,bat3,bat4)
 
@@ -108,8 +133,7 @@ def start_level_3(screen, restart_main_menu, exit_to_main_menu):
                     pause_menu.draw()
                 elif event.key == pygame.K_e:
                     control_shadow = not control_shadow
-                elif event.key == pygame.K_SPACE:
-                    restart_main_menu()  # Возвращаемся в главное меню при нажатии пробела
+
 
             if is_paused:
                 result = pause_menu.handle_events(event)
@@ -137,14 +161,29 @@ def start_level_3(screen, restart_main_menu, exit_to_main_menu):
         if keys[pygame.K_f] and not control_shadow:
             player.attack(bats)
 
-        if not health.is_alive():
-            game_over_screen = GameOverScreen(
-                screen,
-                lambda: start_level_3(screen, restart_main_menu, exit_to_main_menu),
-                exit_to_main_menu
-            )
-            game_over_screen_loop(game_over_screen)
-            running = False
+        if death_animation_playing:
+            if player.is_death_animation_finished():
+                player_dead = True
+                time.sleep(1)
+                game_over_screen = GameOverScreen(screen,
+                                                  lambda: start_level_3(screen, restart_main_menu, exit_to_main_menu),
+                                                  exit_to_main_menu)
+                game_over_screen_loop(game_over_screen)
+                running = False
+
+        death_animation_finished = False
+
+        if not health.is_alive() or death_animation_finished:
+            if not player_dead:
+                time.sleep(1)
+                game_over_screen = GameOverScreen(
+                    screen,
+                    lambda: start_level_3(screen, restart_main_menu, exit_to_main_menu),
+                    exit_to_main_menu
+                )
+                game_over_screen_loop(game_over_screen)
+                player_dead = True
+                running = False
 
         collision.check_ladder_collision(player)
         collision.check_platform_collision(player)
@@ -237,6 +276,16 @@ def start_level_3(screen, restart_main_menu, exit_to_main_menu):
             credits_screen = CreditsScreen(screen)
             credits_screen.run()
             running = False
+
+        if needle1.rect.colliderect(player.rect):
+            player.take_damage(1)
+
+
+
+
+        for bat in bats:
+            bat.attack(player)
+
 
         pygame.display.flip()
         clock.tick(60)
